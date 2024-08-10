@@ -1,0 +1,9 @@
+{
+    "gasLimit": 21000,
+    "maxFeePerGas": 100000000000,
+    "maxPriorityFeePerGas": 3000000000,
+    "chainId": 421614,
+    "nonce": 0,
+    "value": 10000000000000000,
+    "data": ""
+}
