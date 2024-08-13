@@ -2,9 +2,11 @@ use std::io::{Error, ErrorKind};
 
 use serde::{Deserialize, Deserializer};
 
+pub mod access_list;
 pub mod free_market_transaction;
 
 use crate::evm_account::{Keccak256Digest, SignatureComponent};
+use access_list::Access;
 
 const EIP_1559_TX_TYPE_ID: u8 = 0x02;
 const HEX_PREFIX: &str = "0x";
@@ -33,11 +35,9 @@ where
 {
     let hex_string = String::deserialize(deserializer)?;
 
-    let hex_bytes = hex_data_string_to_bytes(&hex_string).map_err(|error| {
+    hex_data_string_to_bytes(&hex_string).map_err(|error| {
         serde::de::Error::custom(format!("Failed to deserialize hex data: {}", error))
-    })?;
-
-    Ok(hex_bytes)
+    })
 }
 
 fn deserialize_address_string<'de, D>(deserializer: D) -> Result<AccountAddress, D::Error>
@@ -46,17 +46,13 @@ where
 {
     let address_string = String::deserialize(deserializer)?;
 
-    // Checks whether address is in proper hexademical format
-    let hex_address = hex_data_string_to_bytes(&address_string).map_err(|error| {
-        serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
-    })?;
-
-    // Checks whether address is of proper length
-    let hex_address: AccountAddress = hex_address
+    hex_data_string_to_bytes(&address_string)
+        .map_err(|error| {
+            serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
+        })?
+        // Checks whether address is of proper length
         .try_into()
-        .map_err(|_| serde::de::Error::custom("Invalid address length"))?;
-
-    Ok(hex_address)
+        .map_err(|_| serde::de::Error::custom("Invalid address length"))
 }
 
 #[cfg(test)]

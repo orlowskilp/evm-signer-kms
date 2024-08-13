@@ -4,7 +4,7 @@ use rlp::RlpStream;
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
-    deserialize_address_string, deserialize_hex_data_string, AccountAddress, Keccak256Digest,
+    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress, Keccak256Digest,
     SignatureComponent, EIP_1559_TX_TYPE_ID, HEX_PREFIX,
 };
 
@@ -42,8 +42,7 @@ pub struct FreeMarketTransactionUnsigned {
     pub value: u128,
     #[serde(deserialize_with = "deserialize_hex_data_string")]
     pub data: Vec<u8>,
-    // TODO: AccessList abstraction will be added in the future
-    pub access_list: Vec<u8>,
+    pub access_list: Vec<Access>,
 }
 
 impl FreeMarketTransactionUnsigned {
