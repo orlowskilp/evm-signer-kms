@@ -1,12 +1,14 @@
 use std::io;
 
 use asn1::{BigInt, BitString, ParseError, Sequence};
+use eip2::is_eip2_compat;
 use secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
     Message, Secp256k1,
 };
 use sha3::{Digest, Keccak256};
 
+mod eip2;
 pub mod kms_key;
 pub mod transaction;
 
@@ -107,7 +109,6 @@ impl<'a> EvmAccount<'a> {
         })?;
 
         // Remove the leading sign indicator zero byte if present
-        // TODO: Need to implement wrap around the max EC value
         let r = Self::to_signature_component(r.as_bytes());
         let s = Self::to_signature_component(s.as_bytes());
 
@@ -149,9 +150,22 @@ impl<'a> EvmAccount<'a> {
     async fn sign_bytes(
         &self,
         digest: &[u8],
+        retry_if_not_eip2: bool,
     ) -> Result<(u32, SignatureComponent, SignatureComponent), io::Error> {
-        let signature = self.kms_key.sign(digest).await?;
-        let (r, s) = Self::parse_signature(&signature)?;
+        // If s value is larger than Secp256k1 N/2, retry signing until it's less than or equal to N/2
+        let (r, s) = loop {
+            // TODO: Consider multiple wraps around N/2
+            let signature = self.kms_key.sign(digest).await?;
+            let (r, s) = Self::parse_signature(&signature)?;
+
+            if !retry_if_not_eip2 {
+                break (r, s);
+            }
+
+            if is_eip2_compat(s) {
+                break (r, s);
+            }
+        };
 
         let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
             io::Error::new(
@@ -166,9 +180,10 @@ impl<'a> EvmAccount<'a> {
     pub async fn sign_transaction(
         &self,
         tx: FreeMarketTransactionUnsigned,
+        retry_if_not_eip2: bool,
     ) -> Result<FreeMarketTransactionSigned, io::Error> {
         let digest = keccak256_digest(&tx.encode());
-        let signed_bytes_future = self.sign_bytes(&digest);
+        let signed_bytes_future = self.sign_bytes(&digest, retry_if_not_eip2);
 
         // Verify if the tx is meant for the same chain as the account is tied to
         if self.chain_id != tx.chain_id {
