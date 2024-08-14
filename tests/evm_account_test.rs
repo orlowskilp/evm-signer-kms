@@ -5,7 +5,7 @@ mod evm_account {
         use std::fs::File;
 
         use evm_signer_kms::evm_account::{
-            transaction::free_market_transaction::FreeMarketTransactionUnsigned,
+            transaction::free_market_transaction::FreeMarketTransaction,
             {kms_key, EvmAccount},
         };
 
@@ -22,7 +22,7 @@ mod evm_account {
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
             let evm_account = EvmAccount::new(1, kms_key);
 
-            let tx = FreeMarketTransactionUnsigned {
+            let tx = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -53,7 +53,7 @@ mod evm_account {
             let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             let signed_tx = evm_account
                 .await
@@ -77,7 +77,7 @@ mod evm_account {
             let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             let signed_tx = evm_account
                 .await
@@ -101,7 +101,7 @@ mod evm_account {
             let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             let signed_tx = evm_account
                 .await

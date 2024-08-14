@@ -1,10 +1,11 @@
 use std::{
-    fmt::Debug,
+    fmt::{Debug, Write},
     io::{Error, ErrorKind},
+    string::String,
 };
 
-use rlp::Encodable;
-use serde::{Deserialize, Deserializer};
+use rlp::{Encodable, RlpStream};
+use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod access_list;
 pub mod free_market_transaction;
@@ -19,9 +20,67 @@ const ADDRESS_LENGTH: usize = 20;
 type AccountAddress = [u8; ADDRESS_LENGTH];
 
 pub trait Transaction:
-    Encodable + PartialEq + Debug + serde::de::DeserializeOwned + serde::ser::Serialize
+    // For RLP encoding
+    Encodable +
+    // For comparisons during testing
+    PartialEq +
+    // For debugging
+    Debug +
+    // To satisfy ServiceFn bound required by Lambda runtime
+    serde::de::DeserializeOwned + serde::ser::Serialize
 {
     fn encode(&self) -> Vec<u8>;
+}
+
+#[derive(Debug, PartialEq)]
+pub struct SignedTransaction<T>
+where
+    T: Transaction,
+{
+    pub tx: T,
+    pub digest: Keccak256Digest,
+    pub v: u32,
+    pub r: SignatureComponent,
+    pub s: SignatureComponent,
+}
+
+impl<T> SignedTransaction<T>
+where
+    T: Transaction,
+{
+    pub fn encode(&self) -> Vec<u8> {
+        let mut rlp_stream = RlpStream::new();
+        rlp_stream
+            .begin_unbounded_list()
+            .append(&self.tx)
+            .append(&self.v)
+            .append(&self.r.as_slice())
+            .append(&self.s.as_slice())
+            .finalize_unbounded_list();
+
+        let mut rlp_bytes = rlp_stream.out().to_vec();
+        rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
+
+        rlp_bytes
+    }
+}
+
+impl<T> Serialize for SignedTransaction<T>
+where
+    T: Transaction,
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        self.encode()
+            .iter()
+            .fold(HEX_PREFIX.to_string(), |mut output, byte| {
+                let _ = write!(output, "{:02x}", byte);
+                output
+            })
+            .serialize(serializer)
+    }
 }
 
 fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {

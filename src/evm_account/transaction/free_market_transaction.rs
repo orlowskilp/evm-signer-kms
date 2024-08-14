@@ -1,16 +1,14 @@
-use std::fmt::Write;
-
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
-    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress,
-    Keccak256Digest, SignatureComponent, Transaction, EIP_1559_TX_TYPE_ID, HEX_PREFIX,
+    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress, Transaction,
+    EIP_1559_TX_TYPE_ID,
 };
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FreeMarketTransactionUnsigned {
+pub struct FreeMarketTransaction {
     pub gas_limit: u128,
     pub max_fee_per_gas: u128,
     pub max_priority_fee_per_gas: u128,
@@ -25,7 +23,7 @@ pub struct FreeMarketTransactionUnsigned {
     pub access_list: Vec<Access>,
 }
 
-impl Transaction for FreeMarketTransactionUnsigned {
+impl Transaction for FreeMarketTransaction {
     fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
         rlp_stream
@@ -40,7 +38,7 @@ impl Transaction for FreeMarketTransactionUnsigned {
     }
 }
 
-impl Encodable for FreeMarketTransactionUnsigned {
+impl Encodable for FreeMarketTransaction {
     fn rlp_append(&self, s: &mut RlpStream) {
         s.append(&self.chain_id)
             .append(&self.nonce)
@@ -58,60 +56,9 @@ impl Encodable for FreeMarketTransactionUnsigned {
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub struct FreeMarketTransactionSigned<T>
-where
-    T: Transaction,
-{
-    pub tx: T,
-    pub digest: Keccak256Digest,
-    pub v: u32,
-    pub r: SignatureComponent,
-    pub s: SignatureComponent,
-}
-
-impl<T> FreeMarketTransactionSigned<T>
-where
-    T: Transaction,
-{
-    pub fn encode(&self) -> Vec<u8> {
-        let mut rlp_stream = RlpStream::new();
-        rlp_stream
-            .begin_unbounded_list()
-            .append(&self.tx)
-            .append(&self.v)
-            .append(&self.r.as_slice())
-            .append(&self.s.as_slice())
-            .finalize_unbounded_list();
-
-        let mut rlp_bytes = rlp_stream.out().to_vec();
-        rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
-
-        rlp_bytes
-    }
-}
-
-impl<T> Serialize for FreeMarketTransactionSigned<T>
-where
-    T: Transaction,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::ser::Serializer,
-    {
-        self.encode()
-            .iter()
-            .fold(HEX_PREFIX.to_string(), |mut output, byte| {
-                let _ = write!(output, "{:02x}", byte);
-                output
-            })
-            .serialize(serializer)
-    }
-}
-
 #[cfg(test)]
 mod unit_tests {
-    use super::{Access, AccountAddress, FreeMarketTransactionUnsigned, Transaction};
+    use super::{Access, AccountAddress, FreeMarketTransaction, Transaction};
 
     const TEST_ADDRESS: AccountAddress = [
         0x70, 0xad, 0x75, 0x4f, 0xf6, 0x70, 0x07, 0x74, 0x11, 0xdf, 0x59, 0x8f, 0xcf, 0xfd, 0x61,
@@ -151,7 +98,7 @@ mod unit_tests {
     fn unsigned_tx_encode_no_access_list() {
         let left = TEST_ENCODING_NO_ACCESS_LIST.to_vec();
 
-        let right = FreeMarketTransactionUnsigned {
+        let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
             max_priority_fee_per_gas: 3_000_000_000,
@@ -171,7 +118,7 @@ mod unit_tests {
     fn unsigned_tx_encode_with_access_list_1() {
         let left = TEST_ENCODING_WITH_ACCESS_LIST_1.to_vec();
 
-        let right = FreeMarketTransactionUnsigned {
+        let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
             max_priority_fee_per_gas: 3_000_000_000,
@@ -197,7 +144,7 @@ mod unit_tests {
     fn unsigned_tx_encode_with_access_list_2() {
         let left = TEST_ENCODING_WITH_ACCESS_LIST_2.to_vec();
 
-        let right = FreeMarketTransactionUnsigned {
+        let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
             max_priority_fee_per_gas: 3_000_000_000,

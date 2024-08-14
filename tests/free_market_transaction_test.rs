@@ -4,7 +4,7 @@ mod evm_account {
         use std::fs::File;
 
         use evm_signer_kms::evm_account::transaction::{
-            access_list::Access, free_market_transaction::FreeMarketTransactionUnsigned,
+            access_list::Access, free_market_transaction::FreeMarketTransaction,
         };
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
@@ -17,7 +17,7 @@ mod evm_account {
             const TX_FILE_PATH: &str = "tests/data/valid-tx-01.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let left = FreeMarketTransactionUnsigned {
+            let left = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -29,7 +29,7 @@ mod evm_account {
                 access_list: vec![],
             };
 
-            let right: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             assert_eq!(left, right);
         }
@@ -39,7 +39,7 @@ mod evm_account {
             const TX_FILE_PATH: &str = "tests/data/valid-tx-02.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let left = FreeMarketTransactionUnsigned {
+            let left = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -51,7 +51,7 @@ mod evm_account {
                 access_list: vec![],
             };
 
-            let right: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             assert_eq!(left, right);
         }
@@ -61,7 +61,7 @@ mod evm_account {
             const TX_FILE_PATH: &str = "tests/data/valid-tx-03.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let left = FreeMarketTransactionUnsigned {
+            let left = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -79,7 +79,7 @@ mod evm_account {
                 }],
             };
 
-            let right: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             assert_eq!(left, right);
         }
@@ -89,7 +89,7 @@ mod evm_account {
             const TX_FILE_PATH: &str = "tests/data/valid-tx-04.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let left = FreeMarketTransactionUnsigned {
+            let left = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -127,7 +127,7 @@ mod evm_account {
                 ],
             };
 
-            let right: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
             assert_eq!(left, right);
         }
@@ -139,7 +139,7 @@ mod evm_account {
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
-            let _: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
         }
 
         #[test]
@@ -149,7 +149,7 @@ mod evm_account {
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
-            let _: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
         }
 
         #[test]
@@ -159,7 +159,7 @@ mod evm_account {
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
-            let _: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
         }
 
         #[test]
@@ -169,7 +169,7 @@ mod evm_account {
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
-            let _: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
         }
     }
 }
