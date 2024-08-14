@@ -80,6 +80,7 @@ impl<'a> EvmAccount<'a> {
     fn to_signature_component(decoded_data: &[u8]) -> SignatureComponent {
         let mut trimmed_data = [0u8; SIGNATURE_COMPONENT_LENGTH];
 
+        // TODO: Decoded value may less than 32 bytes; pad with zeros
         trimmed_data.copy_from_slice(if decoded_data.len() > SIGNATURE_COMPONENT_LENGTH {
             &decoded_data[1..]
         } else {

@@ -45,8 +45,56 @@ mod evm_account {
         }
 
         #[tokio::test]
-        async fn encode_signed_tx_succeed() {
+        async fn encode_signed_tx_no_access_list_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-tx-01.json";
+            const CHAIN_ID: u64 = 421614;
+
+            let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
+            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+
+            let tx_file = File::open(TX_FILE_PATH).unwrap();
+            let tx: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+
+            let signed_tx = evm_account
+                .await
+                .unwrap()
+                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .await
+                .unwrap();
+
+            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
+
+            // TODO: Verify the encoding string
+            println!("{}", signed_tx_encoding_string);
+        }
+
+        #[tokio::test]
+        async fn encode_signed_tx_with_access_list_1_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-tx-03.json";
+            const CHAIN_ID: u64 = 421614;
+
+            let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
+            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+
+            let tx_file = File::open(TX_FILE_PATH).unwrap();
+            let tx: FreeMarketTransactionUnsigned = serde_json::from_reader(tx_file).unwrap();
+
+            let signed_tx = evm_account
+                .await
+                .unwrap()
+                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .await
+                .unwrap();
+
+            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
+
+            // TODO: Verify the encoding string
+            println!("{}", signed_tx_encoding_string);
+        }
+
+        #[tokio::test]
+        async fn encode_signed_tx_with_access_list_2_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-tx-04.json";
             const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;

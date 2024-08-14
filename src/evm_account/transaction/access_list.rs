@@ -1,3 +1,4 @@
+use rlp::Encodable;
 use serde::{Deserialize, Deserializer};
 
 use super::{deserialize_address_string, hex_data_string_to_bytes, AccountAddress};
@@ -12,6 +13,19 @@ pub struct Access {
     pub address: AccountAddress,
     #[serde(deserialize_with = "deserialize_storage_keys_string_list")]
     pub storage_keys: Vec<StorageKey>,
+}
+
+impl Encodable for Access {
+    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        s.begin_unbounded_list()
+            .append(&self.address.as_slice())
+            .begin_unbounded_list();
+        for storage_key in &self.storage_keys {
+            s.append(&storage_key.as_slice());
+        }
+        s.finalize_unbounded_list();
+        s.finalize_unbounded_list()
+    }
 }
 
 fn deserialize_storage_keys_string_list<'de, D>(
