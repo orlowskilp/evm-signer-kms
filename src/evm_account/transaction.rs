@@ -1,5 +1,9 @@
-use std::io::{Error, ErrorKind};
+use std::{
+    fmt::Debug,
+    io::{Error, ErrorKind},
+};
 
+use rlp::Encodable;
 use serde::{Deserialize, Deserializer};
 
 pub mod access_list;
@@ -13,6 +17,12 @@ const HEX_PREFIX: &str = "0x";
 const ADDRESS_LENGTH: usize = 20;
 
 type AccountAddress = [u8; ADDRESS_LENGTH];
+
+pub trait Transaction:
+    Encodable + PartialEq + Debug + serde::de::DeserializeOwned + serde::ser::Serialize
+{
+    fn encode(&self) -> Vec<u8>;
+}
 
 fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
     const HEX_RADIX: u32 = 16;

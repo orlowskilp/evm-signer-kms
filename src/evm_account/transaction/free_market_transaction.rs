@@ -4,11 +4,11 @@ use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
-    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress, Keccak256Digest,
-    SignatureComponent, EIP_1559_TX_TYPE_ID, HEX_PREFIX,
+    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress,
+    Keccak256Digest, SignatureComponent, Transaction, EIP_1559_TX_TYPE_ID, HEX_PREFIX,
 };
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FreeMarketTransactionUnsigned {
     pub gas_limit: u128,
@@ -25,8 +25,8 @@ pub struct FreeMarketTransactionUnsigned {
     pub access_list: Vec<Access>,
 }
 
-impl FreeMarketTransactionUnsigned {
-    pub fn encode(&self) -> Vec<u8> {
+impl Transaction for FreeMarketTransactionUnsigned {
+    fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
         rlp_stream
             .begin_unbounded_list()
@@ -59,15 +59,21 @@ impl Encodable for FreeMarketTransactionUnsigned {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct FreeMarketTransactionSigned {
-    pub tx: FreeMarketTransactionUnsigned,
+pub struct FreeMarketTransactionSigned<T>
+where
+    T: Transaction,
+{
+    pub tx: T,
     pub digest: Keccak256Digest,
     pub v: u32,
     pub r: SignatureComponent,
     pub s: SignatureComponent,
 }
 
-impl FreeMarketTransactionSigned {
+impl<T> FreeMarketTransactionSigned<T>
+where
+    T: Transaction,
+{
     pub fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
         rlp_stream
@@ -85,7 +91,10 @@ impl FreeMarketTransactionSigned {
     }
 }
 
-impl Serialize for FreeMarketTransactionSigned {
+impl<T> Serialize for FreeMarketTransactionSigned<T>
+where
+    T: Transaction,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::ser::Serializer,
@@ -102,7 +111,7 @@ impl Serialize for FreeMarketTransactionSigned {
 
 #[cfg(test)]
 mod unit_tests {
-    use super::{Access, AccountAddress, FreeMarketTransactionUnsigned};
+    use super::{Access, AccountAddress, FreeMarketTransactionUnsigned, Transaction};
 
     const TEST_ADDRESS: AccountAddress = [
         0x70, 0xad, 0x75, 0x4f, 0xf6, 0x70, 0x07, 0x74, 0x11, 0xdf, 0x59, 0x8f, 0xcf, 0xfd, 0x61,

@@ -1,5 +1,5 @@
 use rlp::Encodable;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use super::{deserialize_address_string, hex_data_string_to_bytes, AccountAddress};
 
@@ -7,7 +7,7 @@ const STORAGE_KEY_LEN: usize = 32;
 
 type StorageKey = [u8; STORAGE_KEY_LEN];
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct Access {
     #[serde(deserialize_with = "deserialize_address_string")]
     pub address: AccountAddress,

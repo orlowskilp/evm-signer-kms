@@ -13,9 +13,7 @@ pub mod kms_key;
 pub mod transaction;
 
 use kms_key::KmsKey;
-use transaction::free_market_transaction::{
-    FreeMarketTransactionSigned, FreeMarketTransactionUnsigned,
-};
+use transaction::{free_market_transaction::FreeMarketTransactionSigned, Transaction};
 
 const PUBLIC_KEY_LENGTH: usize = 64;
 const KECCAK_256_LENGTH: usize = 32;
@@ -178,21 +176,13 @@ impl<'a> EvmAccount<'a> {
         Ok((v, r, s))
     }
 
-    pub async fn sign_transaction(
+    pub async fn sign_transaction<T: Transaction>(
         &self,
-        tx: FreeMarketTransactionUnsigned,
+        tx: T,
         retry_if_not_eip2: bool,
-    ) -> Result<FreeMarketTransactionSigned, io::Error> {
+    ) -> Result<FreeMarketTransactionSigned<T>, io::Error> {
         let digest = keccak256_digest(&tx.encode());
         let signed_bytes_future = self.sign_bytes(&digest, retry_if_not_eip2);
-
-        // Verify if the tx is meant for the same chain as the account is tied to
-        if self.chain_id != tx.chain_id {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "Chain ID mismatch between account and transaction",
-            ));
-        }
 
         let (v, r, s) = signed_bytes_future.await?;
 
