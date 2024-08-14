@@ -9,13 +9,15 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod access_list;
 pub mod free_market_transaction;
+pub mod legacy_transaction;
 
 use crate::evm_account::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
 
-const EIP_1559_TX_TYPE_ID: u8 = 0x02;
 const HEX_PREFIX: &str = "0x";
 const ADDRESS_LENGTH: usize = 20;
+const MAX_TX_TYPE_ID: u8 = 0x7f; // Hex to use the exact EIP-2718 max value
+const LEGACY_TX_MIN_PARITY: u32 = 27;
 
 type AccountAddress = [u8; ADDRESS_LENGTH];
 
@@ -37,6 +39,7 @@ pub struct SignedTransaction<T>
 where
     T: Transaction,
 {
+    pub tx_type: u8,
     pub tx: T,
     pub digest: Keccak256Digest,
     pub v: u32,
@@ -48,6 +51,30 @@ impl<T> SignedTransaction<T>
 where
     T: Transaction,
 {
+    pub fn new(
+        tx: T,
+        encoding: &[u8],
+        digest: Keccak256Digest,
+        v: u32,
+        r: SignatureComponent,
+        s: SignatureComponent,
+    ) -> Self {
+        let (tx_type, v) = if encoding[0] < MAX_TX_TYPE_ID {
+            (encoding[0], v)
+        } else {
+            (0x0, v + LEGACY_TX_MIN_PARITY)
+        };
+
+        Self {
+            tx_type,
+            tx,
+            digest,
+            v,
+            r,
+            s,
+        }
+    }
+
     pub fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
         rlp_stream
@@ -59,7 +86,10 @@ where
             .finalize_unbounded_list();
 
         let mut rlp_bytes = rlp_stream.out().to_vec();
-        rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
+
+        if self.tx_type > 0x0 {
+            rlp_bytes.insert(0, self.tx_type);
+        }
 
         rlp_bytes
     }

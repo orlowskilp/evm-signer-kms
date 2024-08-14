@@ -5,8 +5,12 @@ mod evm_account {
         use std::fs::File;
 
         use evm_signer_kms::evm_account::{
-            transaction::free_market_transaction::FreeMarketTransaction,
-            {kms_key, EvmAccount},
+            kms_key,
+            transaction::{
+                free_market_transaction::FreeMarketTransaction,
+                legacy_transaction::LegacyTransaction,
+            },
+            EvmAccount,
         };
 
         const RETRY_IF_NOT_EIP2_COMPAT: bool = false;
@@ -45,8 +49,32 @@ mod evm_account {
         }
 
         #[tokio::test]
-        async fn encode_signed_tx_no_access_list_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-01.json";
+        async fn encode_signed_legacy_tx_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-01.json";
+            const CHAIN_ID: u64 = 1; // No relevant, need to remove
+
+            let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
+            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+
+            let tx_file = File::open(TX_FILE_PATH).unwrap();
+            let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
+
+            let signed_tx = evm_account
+                .await
+                .unwrap()
+                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .await
+                .unwrap();
+
+            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
+
+            // TODO: Verify the encoding string
+            println!("{}", signed_tx_encoding_string);
+        }
+
+        #[tokio::test]
+        async fn encode_signed_free_market_tx_no_access_list_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
             const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
@@ -69,8 +97,8 @@ mod evm_account {
         }
 
         #[tokio::test]
-        async fn encode_signed_tx_with_access_list_1_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-03.json";
+        async fn encode_signed_free_market_tx_with_access_list_1_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
             const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
@@ -93,8 +121,8 @@ mod evm_account {
         }
 
         #[tokio::test]
-        async fn encode_signed_tx_with_access_list_2_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-04.json";
+        async fn encode_signed_free_market_tx_with_access_list_2_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
             const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;

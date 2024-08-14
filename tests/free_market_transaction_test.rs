@@ -1,4 +1,4 @@
-mod evm_account {
+mod free_market_transaction {
     mod integration_tests {
         use serde_json;
         use std::fs::File;
@@ -13,8 +13,8 @@ mod evm_account {
         ];
 
         #[test]
-        fn deserialize_valid_tx_01_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-01.json";
+        fn deserialize_valid_free_market_tx_01_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
@@ -22,7 +22,7 @@ mod evm_account {
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
                 chain_id: 421614,
-                nonce: 2,
+                nonce: 5,
                 to: TEST_TO_ADDRESS_BYTES,
                 value: 10_000_000_000_000_000,
                 data: vec![],
@@ -35,8 +35,8 @@ mod evm_account {
         }
 
         #[test]
-        fn deserialize_valid_tx_02_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-02.json";
+        fn deserialize_valid_free_market_tx_02_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-02.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
@@ -57,8 +57,8 @@ mod evm_account {
         }
 
         #[test]
-        fn deserialize_valid_tx_03_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-03.json";
+        fn deserialize_valid_free_market_tx_03_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
@@ -85,8 +85,8 @@ mod evm_account {
         }
 
         #[test]
-        fn deserialize_valid_tx_04_succeed() {
-            const TX_FILE_PATH: &str = "tests/data/valid-tx-04.json";
+        fn deserialize_valid_free_market_tx_04_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
@@ -134,8 +134,8 @@ mod evm_account {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_tx_01_fail() {
-            const TX_FILE_PATH: &str = "tests/data/invalid-tx-01.json";
+        fn deserialize_invalid_free_market_tx_01_fail() {
+            const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-01.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
@@ -144,8 +144,8 @@ mod evm_account {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_tx_02_fail() {
-            const TX_FILE_PATH: &str = "tests/data/invalid-tx-02.json";
+        fn deserialize_invalid_free_market_tx_02_fail() {
+            const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-02.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
@@ -154,8 +154,8 @@ mod evm_account {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_tx_03_fail() {
-            const TX_FILE_PATH: &str = "tests/data/invalid-tx-03.json";
+        fn deserialize_invalid_free_market_tx_03_fail() {
+            const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-03.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 
@@ -164,8 +164,8 @@ mod evm_account {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_tx_04_fail() {
-            const TX_FILE_PATH: &str = "tests/data/invalid-tx-04.json";
+        fn deserialize_invalid_free_market_tx_04_fail() {
+            const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-04.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
 

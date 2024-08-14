@@ -181,18 +181,13 @@ impl<'a> EvmAccount<'a> {
         tx: T,
         retry_if_not_eip2: bool,
     ) -> Result<SignedTransaction<T>, io::Error> {
-        let digest = keccak256_digest(&tx.encode());
-        let signed_bytes_future = self.sign_bytes(&digest, retry_if_not_eip2);
+        let tx_encoding = tx.encode();
+        let digest = keccak256_digest(&tx_encoding);
+        let signed_bytes = self.sign_bytes(&digest, retry_if_not_eip2);
 
-        let (v, r, s) = signed_bytes_future.await?;
+        let (v, r, s) = signed_bytes.await?;
 
-        Ok(SignedTransaction {
-            tx,
-            digest,
-            v,
-            r,
-            s,
-        })
+        Ok(SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
     }
 }
 
