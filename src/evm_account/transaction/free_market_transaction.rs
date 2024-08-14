@@ -1,29 +1,12 @@
 use std::fmt::Write;
 
-use rlp::RlpStream;
+use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
     deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress, Keccak256Digest,
     SignatureComponent, EIP_1559_TX_TYPE_ID, HEX_PREFIX,
 };
-
-fn build_payload_rlp_stream(stream: &mut RlpStream, tx: &FreeMarketTransactionUnsigned) {
-    stream
-        .append(&tx.chain_id)
-        .append(&tx.nonce)
-        .append(&tx.max_priority_fee_per_gas)
-        .append(&tx.max_fee_per_gas)
-        .append(&tx.gas_limit)
-        .append(&tx.to.as_slice())
-        .append(&tx.value)
-        .append(&tx.data)
-        .begin_unbounded_list();
-    for access in &tx.access_list {
-        stream.append(access);
-    }
-    stream.finalize_unbounded_list()
-}
 
 #[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -45,14 +28,33 @@ pub struct FreeMarketTransactionUnsigned {
 impl FreeMarketTransactionUnsigned {
     pub fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
-        rlp_stream.begin_unbounded_list();
-        build_payload_rlp_stream(&mut rlp_stream, self);
-        rlp_stream.finalize_unbounded_list();
+        rlp_stream
+            .begin_unbounded_list()
+            .append(self)
+            .finalize_unbounded_list();
 
         let mut rlp_bytes = rlp_stream.out().to_vec();
         rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
 
         rlp_bytes
+    }
+}
+
+impl Encodable for FreeMarketTransactionUnsigned {
+    fn rlp_append(&self, s: &mut RlpStream) {
+        s.append(&self.chain_id)
+            .append(&self.nonce)
+            .append(&self.max_priority_fee_per_gas)
+            .append(&self.max_fee_per_gas)
+            .append(&self.gas_limit)
+            .append(&self.to.as_slice())
+            .append(&self.value)
+            .append(&self.data)
+            .begin_unbounded_list();
+        for access in &self.access_list {
+            s.append(access);
+        }
+        s.finalize_unbounded_list()
     }
 }
 
@@ -68,13 +70,13 @@ pub struct FreeMarketTransactionSigned {
 impl FreeMarketTransactionSigned {
     pub fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
-        rlp_stream.begin_unbounded_list();
-        build_payload_rlp_stream(&mut rlp_stream, &self.tx);
         rlp_stream
+            .begin_unbounded_list()
+            .append(&self.tx)
             .append(&self.v)
             .append(&self.r.as_slice())
-            .append(&self.s.as_slice());
-        rlp_stream.finalize_unbounded_list();
+            .append(&self.s.as_slice())
+            .finalize_unbounded_list();
 
         let mut rlp_bytes = rlp_stream.out().to_vec();
         rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
