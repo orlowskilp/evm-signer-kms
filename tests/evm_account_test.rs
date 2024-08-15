@@ -7,6 +7,7 @@ mod evm_account {
         use evm_signer_kms::evm_account::{
             kms_key,
             transaction::{
+                access_list_transaction::AccessListTransaction,
                 free_market_transaction::FreeMarketTransaction,
                 legacy_transaction::LegacyTransaction,
             },
@@ -58,6 +59,30 @@ mod evm_account {
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
+
+            let signed_tx = evm_account
+                .await
+                .unwrap()
+                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .await
+                .unwrap();
+
+            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
+
+            // TODO: Verify the encoding string
+            println!("{}", signed_tx_encoding_string);
+        }
+
+        #[tokio::test]
+        async fn encode_signed_access_list_tx_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
+            const CHAIN_ID: u64 = 1; // No relevant, need to remove
+
+            let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
+            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+
+            let tx_file = File::open(TX_FILE_PATH).unwrap();
+            let tx: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
 
             let signed_tx = evm_account
                 .await

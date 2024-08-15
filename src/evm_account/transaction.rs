@@ -8,6 +8,7 @@ use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod access_list;
+pub mod access_list_transaction;
 pub mod free_market_transaction;
 pub mod legacy_transaction;
 
