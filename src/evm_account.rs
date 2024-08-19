@@ -70,16 +70,19 @@ impl<'a> EvmAccount<'a> {
     }
 
     fn to_signature_component(decoded_data: &[u8]) -> SignatureComponent {
-        let mut trimmed_data = [0u8; SIGNATURE_COMPONENT_LENGTH];
+        let mut component = [0u8; SIGNATURE_COMPONENT_LENGTH];
 
-        // TODO: Decoded value may less than 32 bytes; pad with zeros
-        trimmed_data.copy_from_slice(if decoded_data.len() > SIGNATURE_COMPONENT_LENGTH {
-            &decoded_data[1..]
+        if decoded_data.len() > SIGNATURE_COMPONENT_LENGTH {
+            // Drop the meaningless leading sign indicator zero byte
+            component.copy_from_slice(&decoded_data[1..]);
+        } else if decoded_data.len() == SIGNATURE_COMPONENT_LENGTH {
+            component.copy_from_slice(&decoded_data);
         } else {
-            decoded_data
-        });
+            let s = &mut component[1..];
+            s.copy_from_slice(decoded_data);
+        };
 
-        trimmed_data
+        component
     }
 
     fn parse_signature(
