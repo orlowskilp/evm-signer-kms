@@ -25,7 +25,7 @@ mod evm_account {
         #[tokio::test]
         async fn sign_transaction_succeed() {
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(1, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -52,10 +52,9 @@ mod evm_account {
         #[tokio::test]
         async fn encode_signed_legacy_tx_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-01.json";
-            const CHAIN_ID: u64 = 1; // No relevant, need to remove
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -76,10 +75,9 @@ mod evm_account {
         #[tokio::test]
         async fn encode_signed_access_list_tx_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
-            const CHAIN_ID: u64 = 1; // No relevant, need to remove
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -100,10 +98,9 @@ mod evm_account {
         #[tokio::test]
         async fn encode_signed_free_market_tx_no_access_list_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
-            const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -124,10 +121,9 @@ mod evm_account {
         #[tokio::test]
         async fn encode_signed_free_market_tx_with_access_list_1_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
-            const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -148,10 +144,9 @@ mod evm_account {
         #[tokio::test]
         async fn encode_signed_free_market_tx_with_access_list_2_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
-            const CHAIN_ID: u64 = 421614;
 
             let kms_key = &kms_key::KmsKey::new(KMS_KEY_ID).await;
-            let evm_account = EvmAccount::new(CHAIN_ID, kms_key);
+            let evm_account = EvmAccount::new(kms_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();

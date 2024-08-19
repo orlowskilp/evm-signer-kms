@@ -29,7 +29,6 @@ fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
 
 pub struct EvmAccount<'a> {
     pub public_key: PublicKey,
-    pub chain_id: u64,
     kms_key: &'a KmsKey<'a>,
 }
 
@@ -39,9 +38,7 @@ impl<'a> EvmAccount<'a> {
         let public_key = asn1::parse(public_key_blob, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 let _ = parser.read_element::<Sequence>()?;
-                let pk = parser.read_element::<BitString>()?;
-
-                Ok(pk)
+                parser.read_element::<BitString>()
             })
         })
         .map_err(|error: ParseError| {
@@ -53,24 +50,21 @@ impl<'a> EvmAccount<'a> {
         .as_bytes();
 
         // Public key is 65-bytes long, with the first 0x04 byte indicating the EC prefix
-        let public_key: PublicKey = public_key[1..].try_into().map_err(|_| {
+        public_key[1..].try_into().map_err(|_| {
             // This will never happen for secp256k1 public keys
             io::Error::new(
                 io::ErrorKind::InvalidData,
                 "Invalid public key format: This was not supposed to happen!",
             )
-        })?;
-
-        Ok(public_key)
+        })
     }
 
-    pub async fn new(chain_id: u64, kms_key: &'a KmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
+    pub async fn new(kms_key: &'a KmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
         let public_key_der = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&public_key_der)?;
 
         Ok(EvmAccount {
             public_key,
-            chain_id,
             kms_key,
         })
     }
