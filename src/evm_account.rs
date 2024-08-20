@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, io};
 
 use asn1::{BigInt, BitString, ParseError, Sequence};
-use eip2::is_eip2_compat;
+use eip2::wrap_s;
 use secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
     Message, Secp256k1,
@@ -110,7 +110,7 @@ impl<'a> EvmAccount<'a> {
 
         // Remove the leading sign indicator zero byte if present
         let r = Self::to_signature_component(r.as_bytes());
-        let s = Self::to_signature_component(s.as_bytes());
+        let s = wrap_s(Self::to_signature_component(s.as_bytes()));
 
         Ok((r, s))
     }
@@ -150,22 +150,9 @@ impl<'a> EvmAccount<'a> {
     async fn sign_bytes(
         &self,
         digest: &[u8],
-        retry_if_not_eip2: bool,
     ) -> Result<(u32, SignatureComponent, SignatureComponent), io::Error> {
-        // If s value is larger than Secp256k1 N/2, retry signing until it's less than or equal to N/2
-        let (r, s) = loop {
-            // TODO: Consider multiple wraps around N/2
-            let signature = self.kms_key.sign(digest).await?;
-            let (r, s) = Self::parse_signature(&signature)?;
-
-            if !retry_if_not_eip2 {
-                break (r, s);
-            }
-
-            if is_eip2_compat(s) {
-                break (r, s);
-            }
-        };
+        let signature = self.kms_key.sign(digest).await?;
+        let (r, s) = Self::parse_signature(&signature)?;
 
         let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
             io::Error::new(
@@ -180,11 +167,10 @@ impl<'a> EvmAccount<'a> {
     pub async fn sign_transaction<T: Transaction>(
         &self,
         tx: T,
-        retry_if_not_eip2: bool,
     ) -> Result<SignedTransaction<T>, io::Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
-        let signed_bytes = self.sign_bytes(&digest, retry_if_not_eip2);
+        let signed_bytes = self.sign_bytes(&digest);
 
         let (v, r, s) = signed_bytes.await?;
 

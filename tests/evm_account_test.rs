@@ -14,7 +14,6 @@ mod evm_account {
             EvmAccount,
         };
 
-        const RETRY_IF_NOT_EIP2_COMPAT: bool = false;
         const KMS_KEY_ID: &str = "52c9a19f-bcfd-46a7-bd56-6d0cf98d8616";
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
@@ -42,7 +41,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
@@ -62,7 +61,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
@@ -85,7 +84,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
@@ -108,7 +107,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
@@ -131,7 +130,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
@@ -154,7 +153,7 @@ mod evm_account {
             let signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx, RETRY_IF_NOT_EIP2_COMPAT)
+                .sign_transaction(tx)
                 .await
                 .unwrap();
 
