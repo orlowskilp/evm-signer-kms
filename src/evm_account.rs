@@ -1,4 +1,4 @@
-use std::io;
+use std::{cmp::Ordering, io};
 
 use asn1::{BigInt, BitString, ParseError, Sequence};
 use eip2::is_eip2_compat;
@@ -72,15 +72,19 @@ impl<'a> EvmAccount<'a> {
     fn to_signature_component(decoded_data: &[u8]) -> SignatureComponent {
         let mut component = [0u8; SIGNATURE_COMPONENT_LENGTH];
 
-        if decoded_data.len() > SIGNATURE_COMPONENT_LENGTH {
-            // Drop the meaningless leading sign indicator zero byte
-            component.copy_from_slice(&decoded_data[1..]);
-        } else if decoded_data.len() == SIGNATURE_COMPONENT_LENGTH {
-            component.copy_from_slice(&decoded_data);
-        } else {
-            let s = &mut component[1..];
-            s.copy_from_slice(decoded_data);
-        };
+        match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
+            Ordering::Greater => {
+                // Drop the meaningless leading sign indicator zero byte
+                component.copy_from_slice(&decoded_data[1..]);
+            }
+            Ordering::Equal => {
+                component.copy_from_slice(decoded_data);
+            }
+            Ordering::Less => {
+                let slice = &mut component[1..];
+                slice.copy_from_slice(decoded_data);
+            }
+        }
 
         component
     }

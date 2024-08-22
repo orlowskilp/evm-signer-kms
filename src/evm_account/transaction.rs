@@ -155,6 +155,30 @@ where
         .map_err(|_| serde::de::Error::custom("Invalid address length"))
 }
 
+fn deserialize_address_string_option<'de, D>(
+    deserializer: D,
+) -> Result<Option<AccountAddress>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let address_string = String::deserialize(deserializer)?;
+
+    let address_bytes = hex_data_string_to_bytes(&address_string).map_err(|error| {
+        serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
+    })?;
+
+    if address_bytes.is_empty() {
+        return Ok(None);
+    }
+
+    let address = address_bytes
+        // Checks whether address is of proper length
+        .try_into()
+        .map_err(|_| serde::de::Error::custom("Invalid address length"))?;
+
+    Ok(Some(address))
+}
+
 #[cfg(test)]
 mod unit_tests {
     use super::{hex_data_string_to_bytes, AccountAddress};

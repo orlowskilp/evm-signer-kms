@@ -33,7 +33,7 @@ mod evm_account {
                 max_priority_fee_per_gas: 3_000_000_000,
                 chain_id: 1,
                 nonce: 0,
-                to: TEST_TO_ADDRESS_BYTES,
+                to: Some(TEST_TO_ADDRESS_BYTES),
                 value: 10_000_000_000_000_000,
                 data: vec![],
                 access_list: vec![],

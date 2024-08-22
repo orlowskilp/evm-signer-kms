@@ -1,7 +1,9 @@
 use rlp::Encodable;
 use serde::{Deserialize, Serialize};
 
-use super::{deserialize_address_string, deserialize_hex_data_string, AccountAddress, Transaction};
+use super::{
+    deserialize_address_string_option, deserialize_hex_data_string, AccountAddress, Transaction,
+};
 
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -9,8 +11,8 @@ pub struct LegacyTransaction {
     pub nonce: u128,
     pub gas_price: u128,
     pub gas_limit: u128,
-    #[serde(deserialize_with = "deserialize_address_string")]
-    pub to: AccountAddress,
+    #[serde(deserialize_with = "deserialize_address_string_option")]
+    pub to: Option<AccountAddress>,
     pub value: u128,
     #[serde(deserialize_with = "deserialize_hex_data_string")]
     pub data: Vec<u8>,
@@ -30,10 +32,15 @@ impl Transaction for LegacyTransaction {
 
 impl Encodable for LegacyTransaction {
     fn rlp_append(&self, s: &mut rlp::RlpStream) {
+        let to = match &self.to {
+            Some(to) => to.as_slice(),
+            None => &[],
+        };
+
         s.append(&self.nonce)
             .append(&self.gas_price)
             .append(&self.gas_limit)
-            .append(&self.to.as_slice())
+            .append(&to)
             .append(&self.value)
             .append(&self.data);
     }
@@ -61,7 +68,7 @@ mod unit_tests {
             nonce: 5,
             gas_price: 100_000_000_000,
             gas_limit: 21_000,
-            to: TEST_ADDRESS,
+            to: Some(TEST_ADDRESS),
             value: 10_000_000_000_000_000,
             data: vec![],
         }

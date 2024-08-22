@@ -18,7 +18,26 @@ mod legacy_transaction {
                 nonce: 5,
                 gas_limit: 21_000,
                 gas_price: 100_000_000_000,
-                to: TEST_TO_ADDRESS_BYTES,
+                to: Some(TEST_TO_ADDRESS_BYTES),
+                value: 10_000_000_000_000_000,
+                data: vec![],
+            };
+
+            let right: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
+
+            assert_eq!(left, right);
+        }
+
+        #[test]
+        fn deserialize_valid_legacy_tx_02_succeed() {
+            const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-02.json";
+
+            let tx_file = File::open(TX_FILE_PATH).unwrap();
+            let left = LegacyTransaction {
+                nonce: 5,
+                gas_limit: 21_000,
+                gas_price: 100_000_000_000,
+                to: None,
                 value: 10_000_000_000_000_000,
                 data: vec![],
             };

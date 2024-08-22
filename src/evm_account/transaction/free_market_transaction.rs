@@ -2,7 +2,8 @@ use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
-    deserialize_address_string, deserialize_hex_data_string, Access, AccountAddress, Transaction,
+    deserialize_address_string_option, deserialize_hex_data_string, Access, AccountAddress,
+    Transaction,
 };
 
 const EIP_1559_TX_TYPE_ID: u8 = 0x02;
@@ -16,8 +17,8 @@ pub struct FreeMarketTransaction {
     pub chain_id: u64,
     pub nonce: u128,
     // FIXME: This may be empty for contract creation tx
-    #[serde(deserialize_with = "deserialize_address_string")]
-    pub to: AccountAddress,
+    #[serde(deserialize_with = "deserialize_address_string_option")]
+    pub to: Option<AccountAddress>,
     pub value: u128,
     #[serde(deserialize_with = "deserialize_hex_data_string")]
     pub data: Vec<u8>,
@@ -41,12 +42,17 @@ impl Transaction for FreeMarketTransaction {
 
 impl Encodable for FreeMarketTransaction {
     fn rlp_append(&self, s: &mut RlpStream) {
+        let to = match &self.to {
+            Some(to) => to.as_slice(),
+            None => &[],
+        };
+
         s.append(&self.chain_id)
             .append(&self.nonce)
             .append(&self.max_priority_fee_per_gas)
             .append(&self.max_fee_per_gas)
             .append(&self.gas_limit)
-            .append(&self.to.as_slice())
+            .append(&to)
             .append(&self.value)
             .append(&self.data)
             .begin_unbounded_list();
@@ -105,7 +111,7 @@ mod unit_tests {
             max_priority_fee_per_gas: 3_000_000_000,
             chain_id: 1,
             nonce: 0,
-            to: TEST_ADDRESS,
+            to: Some(TEST_ADDRESS),
             value: 10_000_000_000_000_000,
             data: vec![],
             access_list: vec![],
@@ -125,7 +131,7 @@ mod unit_tests {
             max_priority_fee_per_gas: 3_000_000_000,
             chain_id: 1,
             nonce: 0,
-            to: TEST_ADDRESS,
+            to: Some(TEST_ADDRESS),
             value: 10_000_000_000_000_000,
             data: vec![],
             access_list: vec![Access {
@@ -151,7 +157,7 @@ mod unit_tests {
             max_priority_fee_per_gas: 3_000_000_000,
             chain_id: 1,
             nonce: 0,
-            to: TEST_ADDRESS,
+            to: Some(TEST_ADDRESS),
             value: 10_000_000_000_000_000,
             data: vec![],
             access_list: vec![
