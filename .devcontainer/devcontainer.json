@@ -1,0 +1,43 @@
+{
+    "name": "Arch Linux Dev Box",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "ARCH": "x86_64",
+            "VERSION": "latest",
+            "USERNAME": "vscode"
+        },
+    "context": ".."
+    },
+    "shutdownAction": "stopContainer",
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
+    "remoteEnv": {
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "rust-client.rustupPath": "/home/vscode/.cargo/bin/rustup"
+            },
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "vadimcn.vscode-lldb",
+                "tamasfe.even-better-toml",
+                "DavidAnson.vscode-markdownlint",
+                "mhutchie.git-graph",
+                "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "GitHub.vscode-github-actions",
+                "ms-vscode.makefile-tools"
+            ]
+        }
+    },
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "remoteUser": "vscode",
+    "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-create.sh"
+}
