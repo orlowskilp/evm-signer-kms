@@ -5,16 +5,28 @@ use super::{
     deserialize_address_string_option, deserialize_hex_data_string, AccountAddress, Transaction,
 };
 
+/// Represents a legacy Ethereum transaction.
+///
+/// The format of a legacy transaction roughly follows the structure described
+/// [here](https://ethereum.org/en/developers/docs/transactions).
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LegacyTransaction {
+    /// Sequence number of transaction from the account.
     pub nonce: u128,
+    /// Gas price in wei (see
+    /// [this article](https://ethereum.org/en/developers/docs/gas)).
     pub gas_price: u128,
+    /// The maximum amount of gas that can be used by the transaction.
     pub gas_limit: u128,
+    /// The address of the recipient of the transaction or `None` for smart contract deployment.
     #[serde(deserialize_with = "deserialize_address_string_option")]
     pub to: Option<AccountAddress>,
+    /// The amount of wei to transfer to the recipient.
     pub value: u128,
     #[serde(deserialize_with = "deserialize_hex_data_string")]
+    /// Transaction data to be sent with the transaction (see
+    /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
     pub data: Vec<u8>,
 }
 

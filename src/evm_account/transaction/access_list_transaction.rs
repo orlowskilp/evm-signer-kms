@@ -8,18 +8,33 @@ use super::{
 
 const EIP_2930_TX_TYPE_ID: u8 = 0x01;
 
+/// Represents an access list (i.e. type 1) transaction.
+///
+/// Type 1 transaction format for transactions with an optional access list as defined in
+/// [`EIP-2930`](https://eips.ethereum.org/EIPS/eip-2930).
 #[derive(Debug, PartialEq, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessListTransaction {
+    /// Chain ID of the network to prevent replay attacks
+    /// (see [`EIP-155`](https://eips.ethereum.org/EIPS/eip-155)).
     pub chain_id: u64,
+    /// Sequence number of transaction from the account.
     pub nonce: u128,
+    /// Gas price in wei (see
+    /// [this article](https://ethereum.org/en/developers/docs/gas)).
     pub gas_price: u128,
+    /// The maximum amount of gas that can be used by the transaction.
     pub gas_limit: u128,
+    /// The address of the recipient of the transaction or `None` for smart contract deployment.
     #[serde(deserialize_with = "deserialize_address_string_option")]
     pub to: Option<AccountAddress>,
+    /// The amount of wei to transfer to the recipient.
     pub value: u128,
+    /// Transaction data to be sent with the transaction (see
+    /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
     #[serde(deserialize_with = "deserialize_hex_data_string")]
     pub data: Vec<u8>,
+    /// List of addresses and storage keys that the transaction plans to access.
     pub access_list: Vec<Access>,
 }
 

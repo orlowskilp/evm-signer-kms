@@ -7,10 +7,13 @@ const STORAGE_KEY_LEN: usize = 32;
 
 type StorageKey = [u8; STORAGE_KEY_LEN];
 
+/// Structure of an access i.e. an address and a list of storage keys accessed by a transaction.
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct Access {
+    /// Address of the account accessed by the transaction.
     #[serde(deserialize_with = "deserialize_address_string")]
     pub address: AccountAddress,
+    /// List of storage keys accessed by the transaction.
     #[serde(deserialize_with = "deserialize_storage_keys_string_list")]
     pub storage_keys: Vec<StorageKey>,
 }

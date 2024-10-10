@@ -2,18 +2,27 @@
 build:
 	cargo build --release
 
+.PHONY: doc
+doc:
+	cargo fmt --check
+	cargo doc --no-deps --open
+
 .PHONY: test
 test:
 	cargo fmt
-	cargo test
+	cargo test --lib --tests
+
+.PHONY: doc_test
+doc_test:
+	cargo test --doc
 
 .PHONY: unit_test
 unit_test:
-	cargo test unit_tests
+	cargo test --lib
 
 .PHONY: integration_tests
 integration_test:
-	cargo test integration_tests
+	cargo test --tests
 
 .PHONY: clean
 clean:

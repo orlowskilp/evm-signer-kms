@@ -8,6 +8,10 @@ const SECP_256K1_N: U256 = U256([
     0xffffffff_ffffffff_ffffffff_fffffffe,
 ]);
 
+/// Wraps the `s` value of signature around x-axis.
+///
+/// See [`EIP-2`](https://eips.ethereum.org/EIPS/eip-2) for details. Moved to separate module to
+/// keep Ethereum specific dependencies in one place.
 pub fn wrap_s(component: SignatureComponent) -> SignatureComponent {
     let mut s_u256 = U256::from_be_bytes(component);
 

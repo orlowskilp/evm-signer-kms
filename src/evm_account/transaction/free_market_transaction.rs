@@ -8,20 +8,33 @@ use crate::evm_account::transaction::{
 
 const EIP_1559_TX_TYPE_ID: u8 = 0x02;
 
+/// Represents a free market (i.e. type 2) transaction.
+///
+/// Type 2 transaction format defined in [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559).
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FreeMarketTransaction {
+    /// The maximum amount of gas that can be used by the transaction.
     pub gas_limit: u128,
+    /// The maximum fee per gas that the sender is willing to pay.
     pub max_fee_per_gas: u128,
+    /// The maximum fee is willing to pay as a tip to the validator.
     pub max_priority_fee_per_gas: u128,
+    /// Chain ID of the network to prevent replay attacks
+    /// (see [`EIP-155`](https://eips.ethereum.org/EIPS/eip-155)).
     pub chain_id: u64,
+    /// Sequence number of transaction from the account.
     pub nonce: u128,
-    // FIXME: This may be empty for contract creation tx
+    /// The address of the recipient of the transaction or `None` for smart contract deployment.
     #[serde(deserialize_with = "deserialize_address_string_option")]
     pub to: Option<AccountAddress>,
+    /// The amount of wei to transfer to the recipient.
     pub value: u128,
+    /// Transaction data to be sent with the transaction (see
+    /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
     #[serde(deserialize_with = "deserialize_hex_data_string")]
     pub data: Vec<u8>,
+    /// List of addresses and storage keys that the transaction plans to access.
     pub access_list: Vec<Access>,
 }
 

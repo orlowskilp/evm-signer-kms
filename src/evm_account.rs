@@ -9,7 +9,9 @@ use secp256k1::{
 use sha3::{Digest, Keccak256};
 
 mod eip2;
+/// Implements abstraction over secp256k1 key pair in AWS KMS.
 pub mod kms_key;
+/// Module implementing representations of EVM transactions.
 pub mod transaction;
 
 use kms_key::KmsKey;
@@ -27,7 +29,12 @@ fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
     Into::<Keccak256Digest>::into(Keccak256::digest(data))
 }
 
+/// Representation of EVM account for signing transactions with AWS KMS keys.
 pub struct EvmAccount<'a> {
+    /// Raw, uncompressed 64-byte public key derived from the private key stored in KMS.
+    ///
+    /// The key is eagerly decoded during the account instantiation and is used for signature
+    /// verification during transaction signing.
     pub public_key: PublicKey,
     kms_key: &'a KmsKey<'a>,
 }
@@ -59,6 +66,10 @@ impl<'a> EvmAccount<'a> {
         })
     }
 
+    /// Axiomatic constructor for `EvmAccount` which ties to the provided `KmsKey` instance.
+    ///
+    /// The constructor eagerly decodes the uncompressed public key from the KMS key, strips the
+    /// `0x04` uncompressed elliptic curve prefix and stores it in the `public_key` field.
     pub async fn new(kms_key: &'a KmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
         let public_key_der = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&public_key_der)?;
@@ -164,6 +175,11 @@ impl<'a> EvmAccount<'a> {
         Ok((v, r, s))
     }
 
+    /// Signs the provided transaction with the EVM account's private key.
+    ///
+    /// The method encodes the unsigned transaction, calculates its digest and signs it with the KMS
+    /// private key. It returns a `SignedTransaction` instance with (among others) the `r` and
+    /// `s` values, and signature parity.
     pub async fn sign_transaction<T: Transaction>(
         &self,
         tx: T,

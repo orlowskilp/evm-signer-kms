@@ -7,9 +7,13 @@ use std::{
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
 
+/// Implementation of access list with necessary encoding and serialization logic.
 pub mod access_list;
+/// Implementation of [`EIP-2930`](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transaction.
 pub mod access_list_transaction;
+/// Implementation of [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transaction.
 pub mod free_market_transaction;
+/// Implementation of the original transaction format.
 pub mod legacy_transaction;
 
 use crate::evm_account::{Keccak256Digest, SignatureComponent};
@@ -17,11 +21,18 @@ use access_list::Access;
 
 const HEX_PREFIX: &str = "0x";
 const ADDRESS_LENGTH: usize = 20;
-const MAX_TX_TYPE_ID: u8 = 0x7f; // Hex to use the exact EIP-2718 max value
+// Maximum transaction type value (see EIP-2718).
+const MAX_TX_TYPE_ID: u8 = 0x7f;
+// Lowest parity value for legacy transactions (see EIP-2).
 const LEGACY_TX_MIN_PARITY: u32 = 27;
 
-type AccountAddress = [u8; ADDRESS_LENGTH];
+/// Type alias for convenience.
+pub type AccountAddress = [u8; ADDRESS_LENGTH];
 
+/// Trait for all transaction types.
+///
+/// This trait is used to define the encoding method for all the transaction types.
+/// Provides bounds for RLP encoding, comparisons and serialization.
 pub trait Transaction:
     // For RLP encoding
     Encodable +
@@ -35,16 +46,23 @@ pub trait Transaction:
     fn encode(&self) -> Vec<u8>;
 }
 
+/// Representation of signed transaction.
 #[derive(Debug, PartialEq)]
 pub struct SignedTransaction<T>
 where
     T: Transaction,
 {
+    /// Transaction type identifier (see [`EIP-2718`](https://eips.ethereum.org/EIPS/eip-2718)).
     pub tx_type: u8,
+    /// Unsigned transaction body.
     pub tx: T,
+    /// Digest of the transaction payload.
     pub digest: Keccak256Digest,
+    /// Parity of the signature.
     pub v: u32,
+    /// Signature component `r`, i.e. parameter on x-axis.
     pub r: SignatureComponent,
+    /// Signature component `s`, i.e. elliptic curve point.
     pub s: SignatureComponent,
 }
 
@@ -52,6 +70,12 @@ impl<T> SignedTransaction<T>
 where
     T: Transaction,
 {
+    /// Creates a new signed transaction.
+    ///
+    /// The unsigned transaction, transaction digest as well as the signature components are stored
+    /// as-is. The encoding is used to determine the transaction type identifier and the parity
+    /// value, depending on the transaction type i.e. `v = {27, 28}` for legacy transactions and
+    /// `v = {0, 1}` for type 1 and type 2 transactions.
     pub fn new(
         tx: T,
         encoding: &[u8],
@@ -76,6 +100,7 @@ where
         }
     }
 
+    /// Encodes the signed transaction using RLP encoding.
     pub fn encode(&self) -> Vec<u8> {
         let mut rlp_stream = RlpStream::new();
         rlp_stream
