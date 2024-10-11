@@ -12,6 +12,10 @@ test:
 	cargo fmt
 	cargo test --lib --tests
 
+.PHONY: test_coverage
+test_coverage:
+	cargo llvm-cov
+
 .PHONY: doc_test
 doc_test:
 	cargo test --doc

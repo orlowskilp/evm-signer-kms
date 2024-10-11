@@ -3,6 +3,20 @@ name = "evm-signer-kms"
 version = "0.2.3"
 edition = "2021"
 authors = ["Lukasz Orlowski <lukasz@orlowski.io>"]
+license = "MIT"
+description = "EVM signer using keys from AWS KMS"
+repository = "https://github.com/orlowskilp/evm-signer-kms"
+homepage = "https://github.com/orlowskilp/evm-signer-kms"
+documentation = "https://docs.rs/evm-signer-kms"
+readme = "README.md"
+keywords = ["ethereum", "evm", "signer", "kms", "aws"]
+categories = ["cryptography", "cryptography::cryptocurrencies"]
+exclude = [
+    ".gitignore",
+    ".git",
+    ".github",
+    ".devcontainer",
+]
 
 [dependencies]
 sha3 = "0.10.8"
