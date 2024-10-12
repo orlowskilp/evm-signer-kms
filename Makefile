@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	cargo build --release
+	cargo build $(ARGS) --release
 
 .PHONY: doc
 doc:
@@ -12,20 +12,20 @@ test:
 	cargo fmt
 	cargo test --lib --tests
 
-.PHONY: test_coverage
-test_coverage:
-	cargo llvm-cov
+.PHONY: test-coverage
+test-coverage:
+	cargo llvm-cov $(ARGS)
 
-.PHONY: doc_test
-doc_test:
+.PHONY: test-doc
+test-doc:
 	cargo test --doc
 
-.PHONY: unit_test
-unit_test:
+.PHONY: unit-test
+unit-test:
 	cargo test --lib
 
-.PHONY: integration_tests
-integration_test:
+.PHONY: integration-tests
+integration-test:
 	cargo test --tests
 
 .PHONY: clean
