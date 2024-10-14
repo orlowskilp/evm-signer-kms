@@ -15,14 +15,14 @@ EVM transaction signing library using key pairs generated and stored in
 
 ## Tool chain compatibility
 
-Works [MUSL](https://musl.libc.org) and [GNU](https://www.gnu.org/software/libc) tool chains.
+Works with [MUSL](https://musl.libc.org) and [GNU](https://www.gnu.org/software/libc) tool chains.
 
 ## Features
 
 * Legacy (type 0) transactions
 * [EIP-2930](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transactions
 * [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transactions
-* Easy expandable to future [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transactions
+* Easily expandable to future [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transactions
 
 ## What's needed
 

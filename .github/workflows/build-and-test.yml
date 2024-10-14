@@ -25,18 +25,14 @@ jobs:
     name: Execute tests and measure coverage
     runs-on: ubuntu-latest
     env:
-      LCOV_UT_OUT: unit-test-cov.lcov
-      LCOV_IT_OUT: integration-test-cov.lcov
+      LCOV_OUT: test-coverage.lcov
+      KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout codebase
+        uses: actions/checkout@v4
 
       - name: Install llvm-cov for code coverage
         uses: taiki-e/install-action@cargo-llvm-cov
-
-      - name: Run unit tests and measure coverage
-        env:
-          LLVM_COV_ARGS: --lcov --output-path ${{ env.LCOV_UT_OUT }} --lib
-        run: make test-coverage ARGS="${{ env.LLVM_COV_ARGS }}"
 
       - name: Assume AWS role
         uses: aws-actions/configure-aws-credentials@v4
@@ -46,36 +42,32 @@ jobs:
           role-session-name: ${{ vars.AWS_STS_SESSION_NAME}}
           mask-aws-account-id: true
 
-      - name: Run integration tests and measure coverage
+      - name: Run unit and integration tests
         env:
-          LLVM_COV_ARGS: --lcov --output-path ${{ env.LCOV_IT_OUT }} --tests
-          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
-        run: make test-coverage ARGS="${{ env.LLVM_COV_ARGS }}"
+          LLVM_COV_ARGS: --lcov --output-path ${{ env.LCOV_OUT }}
+        run: |
+          make fetch-public-key
+          make test-coverage
 
       - name: Run doc tests
-        env:
-          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
-        run: make test-doc
+        run: make doc-test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./${{ env.LCOV_UT_OUT }},./${{ env.LCOV_IT_OUT }}
+          files: ./${{ env.LCOV_OUT }}
           fail_ci_if_error: true
 
   build-x86-gnu:
     name: Build for x86_64-unknown-linux-gnu
-    env:
-      TOOL_CHAIN : x86_64-unknown-linux-gnu
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout codebase
+        uses: actions/checkout@v4
 
-      - name: Build for ${{ env.TOOL_CHAIN }}
-        env:
-          ARGS: --target=${{ env.TOOL_CHAIN }}
-        run: make ARGS=${{ env.ARGS }} build
+      - name: Build for x86_64-unknown-linux-gnu
+        run: make build
 
   build-x86-musl:
     name: Build for x86_64-unknown-linux-musl
@@ -83,14 +75,13 @@ jobs:
       TOOL_CHAIN : x86_64-unknown-linux-musl
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout codebase
+        uses: actions/checkout@v4
 
       - name: Install musl toolchain
         run: |
           sudo apt install musl-tools
           rustup target add --toolchain stable ${{ env.TOOL_CHAIN }}
 
-      - name: Build for ${{ env.TOOL_CHAIN }}
-        env:
-          ARGS: --target=${{ env.TOOL_CHAIN }}
-        run: make ARGS=${{ env.ARGS }} build
+      - name: Build for x86_64-unknown-linux-musl
+        run: make build
