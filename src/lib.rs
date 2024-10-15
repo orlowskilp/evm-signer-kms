@@ -6,6 +6,50 @@
 //! With careful KMS keys policy, the key extraction can be completely disabled making the library
 //! a perfect fit for verifiably secure production environments.
 //!
+//! # Key policy requirements
+//!
+//! At the very least the KMS key policy should have the following permissions that for the IAM role
+//! that your environment assumes:
+//! ```json
+//! {
+//!     "Sid": "Allow key use",
+//!     "Effect": "Allow",
+//!     "Principal": {
+//!         "AWS": "<iam_role_your_environment_assumes>"
+//!     },
+//!     "Action": [
+//!         "kms:DescribeKey",
+//!         "kms:GetPublicKey",
+//!         "kms:Sign",
+//!         "kms:Verify"
+//!     ],
+//!     "Resource": "*"
+//! }
+//! ```
+//!
+//! Furthermore, if you wish to use the library in client code which runs as an AWS resource like
+//! e.g. a AWS Lambda function or a ECS task, you need to allow grants:
+//! ```json
+//! {
+//!     "Sid": "Allow grants for AWS resources",
+//!     "Effect": "Allow",
+//!     "Principal": {
+//!         "AWS": "arn:aws:iam::657362362966:role/githubEvmSignerKmsCicdRole"
+//!     },
+//!     "Action": [
+//!         "kms:CreateGrant",
+//!         "kms:ListGrants",
+//!         "kms:RevokeGrant"
+//!     ],
+//!     "Resource": "*",
+//!     "Condition": {
+//!         "Bool": {
+//!             "kms:GrantIsForAWSResource": "true"
+//!         }
+//!     }
+//! }
+//! ```
+//!
 //! # Examples
 //!
 //! The following example demonstrates how to sign an

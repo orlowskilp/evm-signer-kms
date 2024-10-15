@@ -16,10 +16,10 @@ use std::io::{Error, ErrorKind, Result};
 /// ```json
 /// {
 ///     "KeyMetadata": {
-///         "AWSAccountId": "REDACTED",
-///         "KeyId": "REDACTED",
-///         "Arn": "REDACTED",
-///         "CreationDate": REDACTED,
+///         "AWSAccountId": "[REDACTED]",
+///         "KeyId": "[REDACTED]",
+///         "Arn": "[REDACTED]",
+///         "CreationDate": [REDACTED],
 ///         "Enabled": true,
 ///         "Description": "",
 ///         "KeyUsage": "SIGN_VERIFY",
@@ -50,8 +50,8 @@ impl<'a> KmsKey<'a> {
     /// {
     ///     "Keys": [
     ///         {
-    ///             "KeyId": "<kms_key_id>",
-    ///             "KeyArn": "arn:aws:kms:<aws_region>:<aws_account_no>:key/<kms_key_id>"
+    ///             "KeyId": "[`The key ID you are looking for`]",
+    ///             "KeyArn": [REDACTED]"
     ///         },
     ///         ...
     ///     ]
