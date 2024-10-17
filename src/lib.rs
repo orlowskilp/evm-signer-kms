@@ -34,7 +34,7 @@
 //!     "Sid": "Allow grants for AWS resources",
 //!     "Effect": "Allow",
 //!     "Principal": {
-//!         "AWS": "arn:aws:iam::657362362966:role/githubEvmSignerKmsCicdRole"
+//!         "AWS": "<iam_role_your_environment_assumes>"
 //!     },
 //!     "Action": [
 //!         "kms:CreateGrant",

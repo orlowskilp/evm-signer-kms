@@ -101,7 +101,7 @@ The easiest way to check whether everything works the way it should is by runnin
 Before running the tests you need to download the public key PEM file and copy it to
 `./tests/data/pub-key.pem` and then decode it to `./tests/data/pub-key.der`.
 
-This the `Makefile` provides a directive for that:
+[`Makefile`](./Makefile) provides a directive for that:
 
 ```bash
 make fetch-public-key
