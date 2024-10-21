@@ -19,6 +19,7 @@ EVM transaction signing library using key pairs generated and stored in
 * [EIP-2930](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transactions
 * [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transactions
 * Easily expandable to future [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transactions
+* [EIP-55](https://eips.ethereum.org/EIPS/eip-55) address checksum validation if address has uppercase chars
 
 ## Tool chain compatibility
 

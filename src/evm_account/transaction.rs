@@ -4,8 +4,10 @@ use std::{
     string::String,
 };
 
+use hex;
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
+use sha3::{Digest, Keccak256};
 
 /// Implementation of access list with necessary encoding and serialization logic.
 pub mod access_list;
@@ -20,6 +22,7 @@ use crate::evm_account::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
 
 const HEX_PREFIX: &str = "0x";
+const HEX_RADIX: u32 = 16;
 const ADDRESS_LENGTH: usize = 20;
 // Maximum transaction type value (see EIP-2718).
 const MAX_TX_TYPE_ID: u8 = 0x7f;
@@ -140,7 +143,6 @@ where
 }
 
 fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
-    const HEX_RADIX: u32 = 16;
     const STEP_BY: usize = 2;
 
     let hex_data = hex_data.trim_start_matches(HEX_PREFIX);
@@ -165,11 +167,69 @@ where
     })
 }
 
+fn compute_address_checksum(address: &str) -> Result<String, Error> {
+    let address_ascii_lowercase = address.trim_start_matches(HEX_PREFIX).to_ascii_lowercase();
+
+    // Compute the hash of the address and represent it as a string of hex digits
+    let mut hasher = Keccak256::new();
+    hasher.update(address_ascii_lowercase.clone());
+    let hex_hash = hex::encode(hasher.finalize());
+
+    // Construct the checksummed address prefixed with '0x'
+    let mut address_checksum = HEX_PREFIX.to_string();
+
+    // Iterate over the address and hash, and construct the checksummed address according to EIP-55
+    for (i, ch) in address_ascii_lowercase.chars().enumerate() {
+        address_checksum.push(match ch {
+            '0'..='9' => ch,
+            'a'..='f' => {
+                // Panics if (i) the character is not a valid hex digit or (ii) the radix is not
+                // between 2 and 32. This code is safe because:
+                // (i) Will never happen in this match arm as the match condition is ch in [a-f],
+                // (ii) Will never happen in the runtime because the radix is hardcoded to 16.
+                let hex_hash_nibble = u8::from_str_radix(&hex_hash[i..i + 1], HEX_RADIX)
+                    .expect("Invalid hex digit in address hash: This was not supposed to happen!");
+                if hex_hash_nibble > 7 {
+                    ch.to_ascii_uppercase()
+                } else {
+                    ch
+                }
+            }
+            _ => {
+                return Err(Error::new(
+                    ErrorKind::InvalidData,
+                    "Invalid character in address",
+                ))
+            }
+        });
+    }
+
+    Ok(address_checksum)
+}
+
+fn validate_address_checksum(address: &str) -> bool {
+    // If the address is all in lowercase, this means no checksum was applied and no validation is
+    // needed. This is acceptable, however a warning should be logged.
+    if address == address.to_ascii_lowercase() {
+        return true;
+    }
+
+    // Otherwise strict chgecksum validation is required.
+    match compute_address_checksum(address) {
+        Ok(checksum) => checksum == address,
+        Err(_) => false,
+    }
+}
+
 fn deserialize_address_string<'de, D>(deserializer: D) -> Result<AccountAddress, D::Error>
 where
     D: Deserializer<'de>,
 {
     let address_string = String::deserialize(deserializer)?;
+
+    if !validate_address_checksum(&address_string) {
+        return Err(serde::de::Error::custom("Invalid address checksum"));
+    }
 
     hex_data_string_to_bytes(&address_string)
         .map_err(|error| {
@@ -187,6 +247,10 @@ where
     D: Deserializer<'de>,
 {
     let address_string = String::deserialize(deserializer)?;
+
+    if !validate_address_checksum(&address_string) {
+        return Err(serde::de::Error::custom("Invalid address checksum"));
+    }
 
     let address_bytes = hex_data_string_to_bytes(&address_string).map_err(|error| {
         serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
@@ -206,9 +270,11 @@ where
 
 #[cfg(test)]
 mod unit_tests {
-    use super::{hex_data_string_to_bytes, AccountAddress};
+    use super::*;
 
-    const TEST_ADDR_STR: &str = "0xa9d89186cAA663C8Ef0352Fd1Db3596280625573";
+    const TEST_ADDR_STR_1: &str = "0xa9d89186cAA663C8Ef0352Fd1Db3596280625573";
+    const TEST_ADDR_STR_2: &str = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
+    const TEST_ADDR_STR_3: &str = "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359";
 
     const TEST_ADDR_BYTES: AccountAddress = [
         0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3, 0x59,
@@ -217,11 +283,77 @@ mod unit_tests {
 
     #[test]
     fn evm_address_to_bytes_test() {
-        let input = TEST_ADDR_STR;
+        let input = TEST_ADDR_STR_1;
         let left = TEST_ADDR_BYTES.to_vec();
 
         let right = hex_data_string_to_bytes(input).unwrap();
 
         assert_eq!(left, right);
+    }
+
+    #[test]
+    fn validate_recipient_address_test_1_succeed() {
+        let input = TEST_ADDR_STR_1;
+
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_2_succeed() {
+        let input = TEST_ADDR_STR_2;
+
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_3_succeed() {
+        let input = TEST_ADDR_STR_3;
+
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_1_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_1.to_ascii_lowercase();
+
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_2_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_2.to_ascii_lowercase();
+
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_3_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_3.to_ascii_lowercase();
+
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    #[should_panic]
+    fn validate_recipient_address_test_1_fail() {
+        let input = "0xA9d89186caA663C8Ef0352Fd1Db3596280625573";
+
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    #[should_panic]
+    fn validate_recipient_address_test_2_fail() {
+        let input = "0x5aAeb6053F3E94c9b9A09F33669435E7Ef1BeAed";
+
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    #[should_panic]
+    fn validate_recipient_address_test_3_fail() {
+        let input = "0xfb6916095CA1df60bB79Ce92cE3Ea74c37c5d359";
+
+        assert!(validate_address_checksum(&input));
     }
 }
