@@ -1,7 +1,7 @@
 use rlp::Encodable;
 use serde::{Deserialize, Deserializer, Serialize};
 
-use super::{deserialize_address_string, hex_data_string_to_bytes, AccountAddress};
+use super::{hex_data_string_to_bytes, validate_address_checksum, AccountAddress};
 
 const STORAGE_KEY_LEN: usize = 32;
 
@@ -29,6 +29,25 @@ impl Encodable for Access {
         s.finalize_unbounded_list();
         s.finalize_unbounded_list()
     }
+}
+
+fn deserialize_address_string<'de, D>(deserializer: D) -> Result<AccountAddress, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let address_string = String::deserialize(deserializer)?;
+
+    if !validate_address_checksum(&address_string) {
+        return Err(serde::de::Error::custom("Invalid address checksum"));
+    }
+
+    hex_data_string_to_bytes(&address_string)
+        .map_err(|error| {
+            serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
+        })?
+        // Checks whether address is of proper length
+        .try_into()
+        .map_err(|_| serde::de::Error::custom("Invalid address length"))
 }
 
 fn deserialize_storage_keys_string_list<'de, D>(

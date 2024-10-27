@@ -221,25 +221,6 @@ fn validate_address_checksum(address: &str) -> bool {
     }
 }
 
-fn deserialize_address_string<'de, D>(deserializer: D) -> Result<AccountAddress, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let address_string = String::deserialize(deserializer)?;
-
-    if !validate_address_checksum(&address_string) {
-        return Err(serde::de::Error::custom("Invalid address checksum"));
-    }
-
-    hex_data_string_to_bytes(&address_string)
-        .map_err(|error| {
-            serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
-        })?
-        // Checks whether address is of proper length
-        .try_into()
-        .map_err(|_| serde::de::Error::custom("Invalid address length"))
-}
-
 fn deserialize_address_string_option<'de, D>(
     deserializer: D,
 ) -> Result<Option<AccountAddress>, D::Error>
