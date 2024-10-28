@@ -42,6 +42,7 @@
 //! }
 //! "#;
 //!
+//! // Communication with AWS endpoint is asynchronous, so we need to use async main function
 //! #[tokio::main]
 //! async fn main() -> Result<()> {
 //!     // Get KMS key ID from environment variable

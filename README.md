@@ -51,7 +51,7 @@ designed with containers and container orchestration in mind.
 There are good chances that you will want to inject some secrets into the client application in
 the container orchestration solution (e.g. using
 [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) or
-[HashiCorp Vault](https://www.hashicorp.com/products/vault)). The `KMS_KEY_ID` is a good example.
+[HashiCorp Vault](https://www.hashicorp.com/products/vault)).
 
 ### Key access policy
 
@@ -94,6 +94,10 @@ in the UUID format:
 ```bash
 export KMS_KEY_ID="[REDACTED]"
 ```
+
+**Note:** The library doesn't understand the `KMS_KEY_ID` variable itself, it is just a suggested
+way to pass the key ID to the library logic (see examples in the
+[documentation](https://docs.rs/evm-signer-kms)) for more details.
 
 ### Testing configuration
 

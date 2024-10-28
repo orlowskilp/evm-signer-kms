@@ -142,7 +142,7 @@ impl<'a> EvmAccount<'a> {
         // Possible v values are 0 or 1
         for v in 0..2 {
             let signature =
-                RecoverableSignature::from_compact(&compact_signature, RecoveryId::from_i32(v)?)?;
+                RecoverableSignature::from_compact(&compact_signature, RecoveryId::try_from(v)?)?;
 
             // Uncompressed public key is 65 bytes long, beginning with 0x04 to indicate it is uncompressed
             let pub_key_uncompressed_bytes = secp_context
