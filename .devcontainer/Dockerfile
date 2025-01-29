@@ -19,6 +19,7 @@ RUN pacman -Suy --noconfirm \
     aws-cli \
     git \
     gcc \
+    docker \
     musl \
     make \
     sudo && \

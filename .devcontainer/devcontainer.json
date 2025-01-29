@@ -29,7 +29,8 @@
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "GitHub.vscode-github-actions",
-                "ms-vscode.makefile-tools"
+                "ms-vscode.makefile-tools",
+                "ms-azuretools.vscode-docker"
             ]
         }
     },
@@ -38,6 +39,10 @@
         "--security-opt",
         "seccomp=unconfined"
     ],
+    "mounts": [
+        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+    ],
     "remoteUser": "vscode",
-    "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-create.sh"
+    "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-create.sh",
+    "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-start.sh"
 }
