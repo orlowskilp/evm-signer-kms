@@ -72,7 +72,7 @@ jobs:
   build-x86-musl:
     name: Build for x86_64-unknown-linux-musl
     env:
-      TOOL_CHAIN : x86_64-unknown-linux-musl
+      CARGO_BUILD_TARGET : x86_64-unknown-linux-musl
     runs-on: ubuntu-latest
     steps:
       - name: Checkout codebase
@@ -81,7 +81,7 @@ jobs:
       - name: Install musl toolchain
         run: |
           sudo apt install musl-tools
-          rustup target add --toolchain stable ${{ env.TOOL_CHAIN }}
+          rustup target add --toolchain stable ${{ env.CARGO_BUILD_TARGET }}
 
       - name: Build for x86_64-unknown-linux-musl
         run: make build

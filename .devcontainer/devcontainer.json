@@ -13,7 +13,8 @@
     "workspaceFolder": "/workspace",
     "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
     "remoteEnv": {
-        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+        "RUST_LOG": "DEBUG"
     },
     "customizations": {
         "vscode": {

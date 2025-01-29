@@ -1,9 +1,8 @@
-# Build the library with the specified tool chain. Defaults to x86_64-unknown-linux-gnu
+# Build the library with the specified toolchain as per `CARGO_BUILD_TARGET`
 .PHONY: build
-TOOL_CHAIN ?= x86_64-unknown-linux-gnu
 build: format
 	cargo clippy
-	cargo build --target=$(TOOL_CHAIN) --release
+	cargo build  --release
 
 # Build documentation for the library
 .PHONY: doc

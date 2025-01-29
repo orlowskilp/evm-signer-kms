@@ -35,11 +35,18 @@ chain:
 make build
 ```
 
-If you wish to build it with a different tool chain, it suffices to specify it with the `TOOL_CHAIN`
-environment variable, e.g.:
+If you wish to build it with a different tool chain, it suffices to specify it with the
+`RUSTUP_TOOLCHAIN` environment variable, e.g.:
 
 ```bash
-TOOL_CHAIN=x86_64-unknown-linux-musl make build
+RUSTUP_TOOLCHAIN=1.81 make build
+ ```
+
+Similarly, if you want to build for a different target, you need to set the `CARGO_BUILD_TARGET`
+variable.
+
+```bash
+CARGO_BUILD_TARGET=x86_64-unknown-linux-musl make build
 ```
 
 ## Setting up
