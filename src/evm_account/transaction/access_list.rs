@@ -1,7 +1,7 @@
 use rlp::Encodable;
 use serde::{Deserialize, Deserializer, Serialize};
 
-use super::{hex_data_string_to_bytes, validate_address_checksum, AccountAddress};
+use super::{AccountAddress, hex_data_string_to_bytes, validate_address_checksum};
 
 const STORAGE_KEY_LEN: usize = 32;
 

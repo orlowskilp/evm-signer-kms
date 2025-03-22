@@ -1,5 +1,16 @@
 [toolchain]
-channel = "1.81"
-components = ["rustfmt", "rust-src", "clippy"]
+channel = "stable"
+components = [
+  "clippy",
+  "rustfmt",
+  "rust-src",
+  "llvm-tools",
+  "llvm-tools-preview",
+]
 profile = "minimal"
-targets = ["x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"]
+targets = [
+  "x86_64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl",
+  "aarch64-unknown-linux-gnu",
+  "aarch64-unknown-linux-musl",
+]

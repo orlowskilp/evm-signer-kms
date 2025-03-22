@@ -2,7 +2,7 @@ use rlp::Encodable;
 use serde::{Deserialize, Serialize};
 
 use super::{
-    deserialize_address_string_option, deserialize_hex_data_string, AccountAddress, Transaction,
+    AccountAddress, Transaction, deserialize_address_string_option, deserialize_hex_data_string,
 };
 
 /// Represents a legacy Ethereum transaction.

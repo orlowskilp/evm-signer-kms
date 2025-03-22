@@ -1,27 +1,24 @@
 mod evm_account {
     mod integration_tests {
         use lazy_static::lazy_static;
-        use serde_json;
-        use serde_plain;
         use std::env;
         use std::fs::File;
 
         use evm_signer_kms::evm_account::{
-            kms_key,
+            EvmAccount, kms_key,
             transaction::{
                 access_list_transaction::AccessListTransaction,
                 free_market_transaction::FreeMarketTransaction,
                 legacy_transaction::LegacyTransaction,
             },
-            EvmAccount,
         };
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!
         const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
         lazy_static! {
-            static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).expect(
-                format!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME).as_str()
+            static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).unwrap_or_else(
+                |_| panic!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME)
             );
         }
 
@@ -62,8 +59,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{:02x?}", signed_tx);
-
-            assert!(true);
         }
 
         #[tokio::test]
@@ -87,8 +82,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{}", signed_tx_encoding_string);
-
-            assert!(true);
         }
 
         #[tokio::test]
@@ -112,8 +105,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{}", signed_tx_encoding_string);
-
-            assert!(true);
         }
 
         #[tokio::test]
@@ -137,8 +128,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{}", signed_tx_encoding_string);
-
-            assert!(true);
         }
 
         #[tokio::test]
@@ -162,8 +151,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{}", signed_tx_encoding_string);
-
-            assert!(true);
         }
 
         #[tokio::test]
@@ -187,8 +174,6 @@ mod evm_account {
 
             // Print the signed transaction bytes for manual verification
             println!("{}", signed_tx_encoding_string);
-
-            assert!(true);
         }
     }
 }

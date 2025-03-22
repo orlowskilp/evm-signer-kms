@@ -199,7 +199,7 @@ fn compute_address_checksum(address: &str) -> Result<String, Error> {
                 return Err(Error::new(
                     ErrorKind::InvalidData,
                     "Invalid character in address",
-                ))
+                ));
             }
         });
     }
@@ -319,7 +319,7 @@ mod unit_tests {
     fn validate_recipient_address_test_1_fail() {
         let input = "0xA9d89186caA663C8Ef0352Fd1Db3596280625573";
 
-        assert!(validate_address_checksum(&input));
+        assert!(validate_address_checksum(input));
     }
 
     #[test]
@@ -327,7 +327,7 @@ mod unit_tests {
     fn validate_recipient_address_test_2_fail() {
         let input = "0x5aAeb6053F3E94c9b9A09F33669435E7Ef1BeAed";
 
-        assert!(validate_address_checksum(&input));
+        assert!(validate_address_checksum(input));
     }
 
     #[test]
@@ -335,6 +335,6 @@ mod unit_tests {
     fn validate_recipient_address_test_3_fail() {
         let input = "0xfb6916095CA1df60bB79Ce92cE3Ea74c37c5d359";
 
-        assert!(validate_address_checksum(&input));
+        assert!(validate_address_checksum(input));
     }
 }

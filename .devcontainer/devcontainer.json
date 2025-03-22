@@ -3,18 +3,20 @@
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
-            "ARCH": "x86_64",
             "VERSION": "latest",
             "USERNAME": "vscode"
         },
-    "context": ".."
+        "options": [
+            "--platform=linux/amd64"
+        ],
+        "context": ".."
     },
     "shutdownAction": "stopContainer",
     "workspaceFolder": "/workspace",
     "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
     "remoteEnv": {
         "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
-        "RUST_LOG": "DEBUG"
+        "AWS_REGION": "ap-southeast-1"
     },
     "customizations": {
         "vscode": {
@@ -30,12 +32,15 @@
                 "GitHub.copilot",
                 "GitHub.copilot-chat",
                 "GitHub.vscode-github-actions",
+                "ms-azuretools.vscode-docker",
                 "ms-vscode.makefile-tools",
-                "ms-azuretools.vscode-docker"
+                "redhat.vscode-yaml",
+                "AmazonWebServices.aws-toolkit-vscode"
             ]
         }
     },
     "runArgs": [
+        "--platform=linux/amd64",
         "--cap-add=SYS_PTRACE",
         "--security-opt",
         "seccomp=unconfined"

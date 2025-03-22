@@ -65,6 +65,14 @@ fetch-public-key: check-env
 	@cat $(PUBLIC_KEY_FILE_PEM) | base64 -d > $(PUBLIC_KEY_FILE_DER)
 	@echo "Public key saved to $(PUBLIC_KEY_FILE_PEM) and decoded to $(PUBLIC_KEY_FILE_DER)"
 
+
+# Lint the codebase
+.PHONY: lint
+lint:
+	dprint check
+	cargo fmt --all --check
+	cargo clippy --all-targets --all-features -- -D warnings
+
 # Check if the environment variables are set and STS token is valid
 .PHONY: check-env
 check-env:

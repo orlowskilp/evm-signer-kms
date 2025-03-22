@@ -3,8 +3,8 @@ use std::{cmp::Ordering, io};
 use asn1::{BigInt, BitString, ParseError, Sequence};
 use eip2::wrap_s;
 use secp256k1::{
-    ecdsa::{RecoverableSignature, RecoveryId},
     Message, Secp256k1,
+    ecdsa::{RecoverableSignature, RecoveryId},
 };
 use sha3::{Digest, Keccak256};
 

@@ -1,8 +1,8 @@
 use aws_config::SdkConfig;
 use aws_sdk_kms::{
+    Client,
     primitives::Blob,
     types::{MessageType, SigningAlgorithmSpec},
-    Client,
 };
 use std::io::{Error, ErrorKind, Result};
 
@@ -60,7 +60,6 @@ impl<'a> KmsKey<'a> {
     ///
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation.
-
     pub async fn new(kms_key_id: &'a str) -> KmsKey<'a> {
         let config = aws_config::from_env().load().await;
 

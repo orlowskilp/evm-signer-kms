@@ -1,6 +1,5 @@
 mod free_market_transaction {
     mod integration_tests {
-        use serde_json;
         use std::fs::File;
 
         use evm_signer_kms::evm_account::transaction::{

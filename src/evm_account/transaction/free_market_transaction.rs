@@ -2,8 +2,8 @@ use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 use crate::evm_account::transaction::{
-    deserialize_address_string_option, deserialize_hex_data_string, Access, AccountAddress,
-    Transaction,
+    Access, AccountAddress, Transaction, deserialize_address_string_option,
+    deserialize_hex_data_string,
 };
 
 const EIP_1559_TX_TYPE_ID: u8 = 0x02;

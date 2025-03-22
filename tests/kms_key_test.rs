@@ -10,8 +10,8 @@ mod kms_key {
         // Assumes no default value and fails if the key ID is not set!
         const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
         lazy_static! {
-            static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).expect(
-                format!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME).as_str()
+            static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).unwrap_or_else(
+                |_| panic!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME)
             );
         }
 
@@ -30,7 +30,9 @@ mod kms_key {
 
             let metadata_len = public_key_file.metadata().unwrap().len() as usize;
             let mut public_key_from_file = vec![0; metadata_len];
-            public_key_file.read(&mut public_key_from_file).unwrap();
+            public_key_file
+                .read_exact(&mut public_key_from_file)
+                .unwrap();
 
             let public_key_from_kms = kms_key.await.get_public_key().await.unwrap();
 
@@ -52,8 +54,6 @@ mod kms_key {
             let message = &DUMMY_MESSAGE_DIGEST.to_vec();
 
             kms_key.await.sign(message).await.unwrap();
-
-            assert!(true);
         }
     }
 }
