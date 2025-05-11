@@ -9,12 +9,10 @@ use secp256k1::{
 use sha3::{Digest, Keccak256};
 
 mod eip2;
-/// Implements abstraction over secp256k1 key pair in AWS KMS.
-pub mod kms_key;
 /// Module implementing representations of EVM transactions.
 pub mod transaction;
 
-use kms_key::KmsKey;
+use crate::key::kms_key::KmsKey;
 use transaction::{SignedTransaction, Transaction};
 
 const PUBLIC_KEY_LENGTH: usize = 64;

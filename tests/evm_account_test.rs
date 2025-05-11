@@ -4,13 +4,16 @@ mod evm_account {
         use std::env;
         use std::fs::File;
 
-        use evm_signer_kms::evm_account::{
-            EvmAccount, kms_key,
-            transaction::{
-                access_list_transaction::AccessListTransaction,
-                free_market_transaction::FreeMarketTransaction,
-                legacy_transaction::LegacyTransaction,
+        use evm_signer_kms::{
+            evm_account::{
+                EvmAccount,
+                transaction::{
+                    access_list_transaction::AccessListTransaction,
+                    free_market_transaction::FreeMarketTransaction,
+                    legacy_transaction::LegacyTransaction,
+                },
             },
+            key::kms_key,
         };
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.

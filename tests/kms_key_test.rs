@@ -4,7 +4,7 @@ mod kms_key {
         use std::env;
         use std::{fs::File, io::Read};
 
-        use evm_signer_kms::evm_account::kms_key::KmsKey;
+        use evm_signer_kms::key::kms_key::KmsKey;
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!

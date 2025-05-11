@@ -199,3 +199,4 @@
 
 /// Provides abstraction for EVM accounts to sign transactions using AWS KMS keys.
 pub mod evm_account;
+pub mod key;
