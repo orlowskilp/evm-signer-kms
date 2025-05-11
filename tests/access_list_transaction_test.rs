@@ -2,7 +2,7 @@ mod free_market_transaction {
     mod integration_tests {
         use std::fs::File;
 
-        use evm_signer_kms::evm_account::transaction::{
+        use evm_signer_kms::transaction::{
             access_list::Access, access_list_transaction::AccessListTransaction,
         };
 

@@ -199,4 +199,7 @@
 
 /// Provides abstraction for EVM accounts to sign transactions using AWS KMS keys.
 pub mod evm_account;
+/// Module implementing the KMS key abstraction.
 pub mod key;
+/// Module implementing representations of EVM transactions.
+pub mod transaction;

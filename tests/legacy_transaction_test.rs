@@ -2,7 +2,7 @@ mod legacy_transaction {
     mod integration_tests {
         use std::fs::File;
 
-        use evm_signer_kms::evm_account::transaction::legacy_transaction::LegacyTransaction;
+        use evm_signer_kms::transaction::legacy_transaction::LegacyTransaction;
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,

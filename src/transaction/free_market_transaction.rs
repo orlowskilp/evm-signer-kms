@@ -1,7 +1,7 @@
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
-use crate::evm_account::transaction::{
+use crate::transaction::{
     Access, AccountAddress, Transaction, deserialize_address_string_option,
     deserialize_hex_data_string,
 };

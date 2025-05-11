@@ -9,19 +9,17 @@ use secp256k1::{
 use sha3::{Digest, Keccak256};
 
 mod eip2;
-/// Module implementing representations of EVM transactions.
-pub mod transaction;
 
 use crate::key::aws_kms::AwsKmsKey;
-use transaction::{SignedTransaction, Transaction};
+use crate::transaction::{SignedTransaction, Transaction};
 
 const PUBLIC_KEY_LENGTH: usize = 64;
 const KECCAK_256_LENGTH: usize = 32;
 const SIGNATURE_COMPONENT_LENGTH: usize = 32;
 
 type PublicKey = [u8; PUBLIC_KEY_LENGTH];
-type Keccak256Digest = [u8; KECCAK_256_LENGTH];
-type SignatureComponent = [u8; SIGNATURE_COMPONENT_LENGTH];
+pub type Keccak256Digest = [u8; KECCAK_256_LENGTH];
+pub type SignatureComponent = [u8; SIGNATURE_COMPONENT_LENGTH];
 
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
     Into::<Keccak256Digest>::into(Keccak256::digest(data))
