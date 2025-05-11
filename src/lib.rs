@@ -16,13 +16,13 @@
 //! [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559) transaction:
 //!
 //! ```rust
-//! use evm_signer_kms::evm_account::{
-//!     kms_key::KmsKey,
+//! use evm_signer_kms::{
+//!     key::aws_kms::AwsKmsKey,
+//!     evm_account::EvmAccount,
 //!     transaction::{
 //!         free_market_transaction::FreeMarketTransaction,
 //!         AccountAddress, SignedTransaction, Transaction
-//!     }, EvmAccount,
-//! };
+//!     }};
 //! use std::{env, io::{Error, ErrorKind, Result}};
 //!
 //! // Name of the environment variable that contains the KMS key ID
@@ -54,7 +54,7 @@
 //!     })?;
 //!
 //!     // Create a new KMS key
-//!     let kms_key = &KmsKey::new(&kms_key_id).await;
+//!     let kms_key = &AwsKmsKey::new(&kms_key_id).await;
 //!     // Create a new EVM account
 //!     let evm_account = EvmAccount::new(kms_key)
 //!         .await
