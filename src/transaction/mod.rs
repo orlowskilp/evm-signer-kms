@@ -18,7 +18,7 @@ pub mod free_market_transaction;
 /// Implementation of the original transaction format.
 pub mod legacy_transaction;
 
-use crate::evm_account::{Keccak256Digest, SignatureComponent};
+use crate::account::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
 
 const HEX_PREFIX: &str = "0x";

@@ -18,7 +18,7 @@
 //! ```rust
 //! use evm_signer_kms::{
 //!     key::aws_kms::AwsKmsKey,
-//!     evm_account::EvmAccount,
+//!     account::EvmAccount,
 //!     transaction::{
 //!         free_market_transaction::FreeMarketTransaction,
 //!         AccountAddress, SignedTransaction, Transaction
@@ -198,7 +198,7 @@
 //!
 
 /// Provides abstraction for EVM accounts to sign transactions using AWS KMS keys.
-pub mod evm_account;
+pub mod account;
 /// Module implementing the KMS key abstraction.
 pub mod key;
 /// Module implementing representations of EVM transactions.

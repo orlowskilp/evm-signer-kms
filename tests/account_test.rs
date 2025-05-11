@@ -5,7 +5,7 @@ mod evm_account {
         use std::fs::File;
 
         use evm_signer_kms::{
-            evm_account::EvmAccount,
+            account::EvmAccount,
             key::aws_kms,
             transaction::{
                 access_list_transaction::AccessListTransaction,
