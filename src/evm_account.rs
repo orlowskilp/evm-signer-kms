@@ -12,7 +12,7 @@ mod eip2;
 /// Module implementing representations of EVM transactions.
 pub mod transaction;
 
-use crate::key::kms_key::KmsKey;
+use crate::key::aws_kms::AwsKmsKey;
 use transaction::{SignedTransaction, Transaction};
 
 const PUBLIC_KEY_LENGTH: usize = 64;
@@ -34,7 +34,7 @@ pub struct EvmAccount<'a> {
     /// The key is eagerly decoded during the account instantiation and is used for signature
     /// verification during transaction signing.
     pub public_key: PublicKey,
-    kms_key: &'a KmsKey<'a>,
+    kms_key: &'a AwsKmsKey<'a>,
 }
 
 impl<'a> EvmAccount<'a> {
@@ -68,7 +68,7 @@ impl<'a> EvmAccount<'a> {
     ///
     /// The constructor eagerly decodes the uncompressed public key from the KMS key, strips the
     /// `0x04` uncompressed elliptic curve prefix and stores it in the `public_key` field.
-    pub async fn new(kms_key: &'a KmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
+    pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
         let public_key_der = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&public_key_der)?;
 

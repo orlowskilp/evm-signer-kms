@@ -35,12 +35,12 @@ use std::io::{Error, ErrorKind, Result};
 ///     }
 /// }
 /// ```
-pub struct KmsKey<'a> {
+pub struct AwsKmsKey<'a> {
     config: SdkConfig,
     kms_key_id: &'a str,
 }
 
-impl<'a> KmsKey<'a> {
+impl<'a> AwsKmsKey<'a> {
     /// Creates a new `KmsKey` instance tied to KMS key identified by KMS key ID.
     ///
     /// Expects that AWS configuration is set in the environment, including a valid `AWS_REGION`.
@@ -60,10 +60,10 @@ impl<'a> KmsKey<'a> {
     ///
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation.
-    pub async fn new(kms_key_id: &'a str) -> KmsKey<'a> {
+    pub async fn new(kms_key_id: &'a str) -> AwsKmsKey<'a> {
         let config = aws_config::from_env().load().await;
 
-        KmsKey { config, kms_key_id }
+        AwsKmsKey { config, kms_key_id }
     }
 
     /// Retrieves the public key associated with the private key.

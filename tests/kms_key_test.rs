@@ -4,7 +4,7 @@ mod kms_key {
         use std::env;
         use std::{fs::File, io::Read};
 
-        use evm_signer_kms::key::kms_key::KmsKey;
+        use evm_signer_kms::key::aws_kms::AwsKmsKey;
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!
@@ -25,7 +25,7 @@ mod kms_key {
 
         #[tokio::test]
         async fn get_public_key_succeed() {
-            let kms_key = KmsKey::new(&KMS_KEY_ID);
+            let kms_key = AwsKmsKey::new(&KMS_KEY_ID);
             let mut public_key_file = File::open(TEST_PUBLIC_KEY_DER_FILE).unwrap();
 
             let metadata_len = public_key_file.metadata().unwrap().len() as usize;
@@ -42,7 +42,7 @@ mod kms_key {
         #[tokio::test]
         #[should_panic]
         async fn get_public_key_fail() {
-            let kms_key = KmsKey::new(DUMMY_KMS_KEY_ID);
+            let kms_key = AwsKmsKey::new(DUMMY_KMS_KEY_ID);
 
             kms_key.await.get_public_key().await.unwrap();
         }
@@ -50,7 +50,7 @@ mod kms_key {
         // Just verifies if the signature process works
         #[tokio::test]
         async fn sign_succeed() {
-            let kms_key = KmsKey::new(&KMS_KEY_ID);
+            let kms_key = AwsKmsKey::new(&KMS_KEY_ID);
             let message = &DUMMY_MESSAGE_DIGEST.to_vec();
 
             kms_key.await.sign(message).await.unwrap();
