@@ -1,5 +1,10 @@
-use std::{cmp::Ordering, io};
+mod eip2;
 
+use crate::{
+    key::aws_kms::AwsKmsKey,
+    transaction::{SignedTransaction, Transaction},
+    types::{Keccak256Digest, PublicKey, SIGNATURE_COMPONENT_LENGTH, SignatureComponent},
+};
 use asn1::{BigInt, BitString, ParseError, Sequence};
 use eip2::wrap_s;
 use secp256k1::{
@@ -7,19 +12,7 @@ use secp256k1::{
     ecdsa::{RecoverableSignature, RecoveryId},
 };
 use sha3::{Digest, Keccak256};
-
-mod eip2;
-
-use crate::key::aws_kms::AwsKmsKey;
-use crate::transaction::{SignedTransaction, Transaction};
-
-const PUBLIC_KEY_LENGTH: usize = 64;
-const KECCAK_256_LENGTH: usize = 32;
-const SIGNATURE_COMPONENT_LENGTH: usize = 32;
-
-type PublicKey = [u8; PUBLIC_KEY_LENGTH];
-pub type Keccak256Digest = [u8; KECCAK_256_LENGTH];
-pub type SignatureComponent = [u8; SIGNATURE_COMPONENT_LENGTH];
+use std::{cmp::Ordering, io};
 
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
     Into::<Keccak256Digest>::into(Keccak256::digest(data))
@@ -192,7 +185,8 @@ impl<'a> EvmAccount<'a> {
 
 #[cfg(test)]
 mod unit_tests {
-    use super::{EvmAccount, KECCAK_256_LENGTH, PUBLIC_KEY_LENGTH, SIGNATURE_COMPONENT_LENGTH};
+    use super::*;
+    use crate::types::{KECCAK_256_LENGTH, PUBLIC_KEY_LENGTH};
 
     const TEST_KEY_DER: [u8; 88] = [
         0x30, 0x56, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05,

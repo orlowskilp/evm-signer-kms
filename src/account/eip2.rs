@@ -1,6 +1,5 @@
+use crate::types::SignatureComponent;
 use ethnum::U256;
-
-use crate::account::SignatureComponent;
 
 const SECP_256K1_N: U256 = U256([
     // NOTE: The order of words is reversed

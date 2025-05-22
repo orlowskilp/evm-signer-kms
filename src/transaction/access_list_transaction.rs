@@ -1,10 +1,9 @@
-use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Serialize};
-
 use super::{
     AccountAddress, Transaction, access_list::Access, deserialize_address_string_option,
     deserialize_hex_data_string,
 };
+use rlp::{Encodable, RlpStream};
+use serde::{Deserialize, Serialize};
 
 const EIP_2930_TX_TYPE_ID: u8 = 0x01;
 

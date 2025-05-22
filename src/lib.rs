@@ -203,3 +203,5 @@ pub mod account;
 pub mod key;
 /// Module implementing representations of EVM transactions.
 pub mod transaction;
+/// Module providing type abstractions.
+pub(crate) mod types;

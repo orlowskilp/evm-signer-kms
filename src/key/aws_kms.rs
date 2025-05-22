@@ -133,9 +133,9 @@ impl<'a> AwsKmsKey<'a> {
                     "Invalid response data. Signature not found",
                 )
             })?
-            .clone();
+            .to_owned()
+            .into_inner();
 
-        // TODO: Remove cloning
-        Ok(signature.into_inner())
+        Ok(signature)
     }
 }

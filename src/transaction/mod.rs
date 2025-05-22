@@ -1,13 +1,14 @@
+use crate::types::{Keccak256Digest, SignatureComponent};
+use access_list::Access;
+use hex;
+use rlp::{Encodable, RlpStream};
+use serde::{Deserialize, Deserializer, Serialize};
+use sha3::{Digest, Keccak256};
 use std::{
     fmt::{Debug, Write},
     io::{Error, ErrorKind},
     string::String,
 };
-
-use hex;
-use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Deserializer, Serialize};
-use sha3::{Digest, Keccak256};
 
 /// Implementation of access list with necessary encoding and serialization logic.
 pub mod access_list;
@@ -17,9 +18,6 @@ pub mod access_list_transaction;
 pub mod free_market_transaction;
 /// Implementation of the original transaction format.
 pub mod legacy_transaction;
-
-use crate::account::{Keccak256Digest, SignatureComponent};
-use access_list::Access;
 
 const HEX_PREFIX: &str = "0x";
 const HEX_RADIX: u32 = 16;
