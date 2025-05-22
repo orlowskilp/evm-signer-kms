@@ -1,6 +1,5 @@
 # Version is provided in devcontainer.json
-ARG VERSION
-FROM archlinux:${VERSION}
+FROM archlinux:latest
 
 # These are meant to be provided in devcontainer.json
 ARG USERNAME

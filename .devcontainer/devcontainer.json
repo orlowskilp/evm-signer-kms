@@ -1,54 +1,53 @@
 {
-    "name": "Arch Linux Dev Box",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "args": {
-            "VERSION": "latest",
-            "USERNAME": "vscode"
-        },
-        "options": [
-            "--platform=linux/amd64"
-        ],
-        "context": ".."
+  "name": "Arch Linux Dev Box",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "USERNAME": "vscode"
     },
-    "shutdownAction": "stopContainer",
-    "workspaceFolder": "/workspace",
-    "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
-    "remoteEnv": {
-        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
-        "AWS_REGION": "ap-southeast-1"
-    },
-    "customizations": {
-        "vscode": {
-            "settings": {
-                "rust-client.rustupPath": "/home/vscode/.cargo/bin/rustup"
-            },
-            "extensions": [
-                "rust-lang.rust-analyzer",
-                "vadimcn.vscode-lldb",
-                "tamasfe.even-better-toml",
-                "DavidAnson.vscode-markdownlint",
-                "mhutchie.git-graph",
-                "GitHub.copilot",
-                "GitHub.copilot-chat",
-                "GitHub.vscode-github-actions",
-                "ms-azuretools.vscode-docker",
-                "ms-vscode.makefile-tools",
-                "redhat.vscode-yaml",
-                "AmazonWebServices.aws-toolkit-vscode"
-            ]
-        }
-    },
-    "runArgs": [
-        "--platform=linux/amd64",
-        "--cap-add=SYS_PTRACE",
-        "--security-opt",
-        "seccomp=unconfined"
+    "options": [
+      "--platform=linux/amd64"
     ],
-    "mounts": [
-        "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-    ],
-    "remoteUser": "vscode",
-    "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-create.sh",
-    "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-start.sh"
+    "context": ".."
+  },
+  "shutdownAction": "stopContainer",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
+  "remoteEnv": {
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+    "AWS_REGION": "ap-southeast-1"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "rust-client.rustupPath": "/home/vscode/.cargo/bin/rustup"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        "tamasfe.even-better-toml",
+        "DavidAnson.vscode-markdownlint",
+        "mhutchie.git-graph",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-github-actions",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.makefile-tools",
+        "redhat.vscode-yaml",
+        "AmazonWebServices.aws-toolkit-vscode"
+      ]
+    }
+  },
+  "runArgs": [
+    "--platform=linux/amd64",
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined"
+  ],
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "remoteUser": "vscode",
+  "postCreateCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-create.sh",
+  "postStartCommand": "${containerWorkspaceFolder}/.devcontainer/commands/post-start.sh"
 }

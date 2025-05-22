@@ -10,16 +10,16 @@ EVM transaction signing library using key pairs generated and stored in
 
 **Built for**:
 
-* Security - AWS KMS managed keys which never leave HSM devices.
-* Speed and reliability - Implemented in Rust.
+- Security - AWS KMS managed keys which never leave HSM devices.
+- Speed and reliability - Implemented in Rust.
 
 ## Features
 
-* Legacy (type 0) transactions
-* [EIP-2930](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transactions
-* [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transactions
-* Easily expandable to future [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transactions
-* [EIP-55](https://eips.ethereum.org/EIPS/eip-55) address checksum validation if address has uppercase chars
+- Legacy (type 0) transactions
+- [EIP-2930](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transactions
+- [EIP-1559](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transactions
+- Easily expandable to future [EIP-2718](https://eips.ethereum.org/EIPS/eip-2718) typed transactions
+- [EIP-55](https://eips.ethereum.org/EIPS/eip-55) address checksum validation if address has uppercase chars
 
 ## Tool chain compatibility
 
@@ -40,7 +40,7 @@ If you wish to build it with a different tool chain, it suffices to specify it w
 
 ```bash
 RUSTUP_TOOLCHAIN=1.81 make build
- ```
+```
 
 Similarly, if you want to build for a different target, you need to set the `CARGO_BUILD_TARGET`
 variable.
@@ -48,6 +48,13 @@ variable.
 ```bash
 CARGO_BUILD_TARGET=x86_64-unknown-linux-musl make build
 ```
+
+### Supported tool chains
+
+- `x86_64-unknown-linux-gnu`
+- `x86_64-unknown-linux-musl`
+- `aarch64-unknown-linux-gnu`
+- `aarch64-unknown-linux-musl`
 
 ## Setting up
 
@@ -145,6 +152,6 @@ If the tests pass, you're all set!
 
 ## What's needed
 
-* More more and better tests
-* Derivation paths support
-* ARM `aarch64` support
+- More more and better tests
+- Derivation paths support
+- ARM `aarch64` support
