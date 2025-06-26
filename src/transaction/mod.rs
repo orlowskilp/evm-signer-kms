@@ -5,7 +5,7 @@ use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
 use sha3::{Digest, Keccak256};
 use std::{
-    fmt::{Debug, Write},
+    fmt::Debug,
     io::{Error, ErrorKind},
     string::String,
 };
@@ -126,52 +126,29 @@ where
     where
         S: serde::ser::Serializer,
     {
-        self.encode()
-            .iter()
-            .fold(HEX_PREFIX.to_string(), |mut output, byte| {
-                let _ = write!(output, "{:02x}", byte);
-                output
-            })
-            .serialize(serializer)
+        format!("{}{}", HEX_PREFIX, hex::encode(self.encode())).serialize(serializer)
     }
 }
 
 fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
-    const STEP_BY: usize = 2;
-
-    let hex_data = hex_data.trim_start_matches(HEX_PREFIX);
-
-    (0..hex_data.len())
-        .step_by(STEP_BY)
-        .map(|i| {
-            u8::from_str_radix(&hex_data[i..i + STEP_BY], HEX_RADIX)
-                .map_err(|error| Error::new(ErrorKind::InvalidData, error))
-        })
-        .collect()
+    hex::decode(hex_data.trim_start_matches(HEX_PREFIX))
+        .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {}", err)))
 }
 
 fn deserialize_hex_data_string<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let hex_string = String::deserialize(deserializer)?;
-
-    hex_data_string_to_bytes(&hex_string).map_err(|error| {
-        serde::de::Error::custom(format!("Failed to deserialize hex data: {}", error))
-    })
+    hex_data_string_to_bytes(&String::deserialize(deserializer)?)
+        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize hex data: {}", err)))
 }
 
 fn compute_address_checksum(address: &str) -> Result<String, Error> {
     let address_ascii_lowercase = address.trim_start_matches(HEX_PREFIX).to_ascii_lowercase();
-
     // Compute the hash of the address and represent it as a string of hex digits
-    let mut hasher = Keccak256::new();
-    hasher.update(address_ascii_lowercase.clone());
-    let hex_hash = hex::encode(hasher.finalize());
-
+    let hex_hash = hex::encode(Keccak256::digest(&address_ascii_lowercase));
     // Construct the checksummed address prefixed with '0x'
     let mut address_checksum = HEX_PREFIX.to_string();
-
     // Iterate over the address and hash, and construct the checksummed address according to EIP-55
     for (i, ch) in address_ascii_lowercase.chars().enumerate() {
         address_checksum.push(match ch {
