@@ -85,10 +85,9 @@ where
         r: SignatureComponent,
         s: SignatureComponent,
     ) -> Self {
-        let (tx_type, v) = if encoding[0] < MAX_TX_TYPE_ID {
-            (encoding[0], v)
-        } else {
-            (0x0, v + LEGACY_TX_MIN_PARITY)
+        let (tx_type, v) = match encoding[0] {
+            tx_type if tx_type < MAX_TX_TYPE_ID => (tx_type, v),
+            _ => (0x0, v + LEGACY_TX_MIN_PARITY),
         };
 
         Self {
@@ -108,16 +107,13 @@ where
             .begin_unbounded_list()
             .append(&self.tx)
             .append(&self.v)
-            .append(&self.r.as_slice())
-            .append(&self.s.as_slice())
+            .append(&self.r.as_ref())
+            .append(&self.s.as_ref())
             .finalize_unbounded_list();
-
-        let mut rlp_bytes = rlp_stream.out().to_vec();
-
+        let rlp_bytes = rlp_stream.out().to_vec();
         if self.tx_type > 0x0 {
-            rlp_bytes.insert(0, self.tx_type);
+            return [vec![self.tx_type], rlp_bytes].concat();
         }
-
         rlp_bytes
     }
 }

@@ -49,6 +49,7 @@ integration-test: format check-env
 .PHONY: format
 format:
 	cargo fmt
+	dprint fmt
 
 # Download and decode the public key from KMS
 .PHONY: fetch-public-key
