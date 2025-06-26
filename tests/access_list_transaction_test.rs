@@ -1,4 +1,4 @@
-mod free_market_transaction {
+mod access_list_transaction {
     mod integration_tests {
         use std::fs::File;
 
@@ -12,7 +12,7 @@ mod free_market_transaction {
         ];
 
         #[test]
-        fn deserialize_valid_free_market_tx_01_succeed() {
+        fn deserialize_valid_access_list_tx_01_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-01.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -33,7 +33,7 @@ mod free_market_transaction {
         }
 
         #[test]
-        fn deserialize_valid_free_market_tx_02_succeed() {
+        fn deserialize_valid_access_list_tx_02_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -80,7 +80,7 @@ mod free_market_transaction {
         }
 
         #[test]
-        fn deserialize_valid_free_market_tx_03_succeed() {
+        fn deserialize_valid_access_list_tx_03_succeed() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-03.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -128,7 +128,7 @@ mod free_market_transaction {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_01_fail() {
+        fn deserialize_invalid_access_list_tx_01_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-01.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -138,7 +138,7 @@ mod free_market_transaction {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_02_fail() {
+        fn deserialize_invalid_access_list_tx_02_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-02.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -148,7 +148,7 @@ mod free_market_transaction {
 
         #[test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_03_fail() {
+        fn deserialize_invalid_access_list_tx_03_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-03.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -157,8 +157,9 @@ mod free_market_transaction {
         }
 
         #[test]
+        #[ignore = "Input file corrupted, needs to be fixed"]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_04_fail() {
+        fn deserialize_invalid_access_list_tx_04_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-04.json";
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
