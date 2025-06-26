@@ -110,11 +110,11 @@ where
             .append(&self.r.as_ref())
             .append(&self.s.as_ref())
             .finalize_unbounded_list();
-        let rlp_bytes = rlp_stream.out().to_vec();
-        if self.tx_type > 0x0 {
-            return [vec![self.tx_type], rlp_bytes].concat();
-        }
-        rlp_bytes
+        let tx_prefix = match self.tx_type {
+            0x0 => vec![],
+            _ => vec![self.tx_type],
+        };
+        [tx_prefix, rlp_stream.out().to_vec()].concat()
     }
 }
 

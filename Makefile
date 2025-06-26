@@ -13,7 +13,7 @@ doc:
 # Run all tests (no coverage)
 .PHONY: test
 test: format check-env
-	cargo test
+	cargo test --all
 
 # Clean up
 .PHONY: clean
