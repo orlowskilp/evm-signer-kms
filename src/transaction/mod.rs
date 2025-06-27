@@ -132,7 +132,7 @@ where
 
 fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
     hex::decode(hex_data.trim_start_matches(HEX_PREFIX))
-        .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {}", err)))
+        .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {err}")))
 }
 
 fn deserialize_hex_data_string<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
@@ -140,7 +140,7 @@ where
     D: Deserializer<'de>,
 {
     hex_data_string_to_bytes(&String::deserialize(deserializer)?)
-        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize hex data: {}", err)))
+        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize hex data: {err}")))
 }
 
 fn compute_address_checksum(address: &str) -> Result<String, Error> {
@@ -184,7 +184,6 @@ fn validate_address_checksum(address: &str) -> bool {
     if address == address.to_ascii_lowercase() {
         return true;
     }
-
     // Otherwise strict chgecksum validation is required.
     match compute_address_checksum(address) {
         Ok(checksum) => checksum == address,
@@ -199,25 +198,21 @@ where
     D: Deserializer<'de>,
 {
     let address_string = String::deserialize(deserializer)?;
-
     if !validate_address_checksum(&address_string) {
         return Err(serde::de::Error::custom("Invalid address checksum"));
     }
 
-    let address_bytes = hex_data_string_to_bytes(&address_string).map_err(|error| {
-        serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
-    })?;
-
+    let address_bytes = hex_data_string_to_bytes(&address_string)
+        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize address: {err}")))?;
     if address_bytes.is_empty() {
         return Ok(None);
     }
 
-    let address = address_bytes
+    address_bytes
         // Checks whether address is of proper length
         .try_into()
-        .map_err(|_| serde::de::Error::custom("Invalid address length"))?;
-
-    Ok(Some(address))
+        .map(Some)
+        .map_err(|_| serde::de::Error::custom("Invalid address length"))
 }
 
 #[cfg(test)]

@@ -11,7 +11,7 @@ mod kms_key {
         const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
         lazy_static! {
             static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).unwrap_or_else(
-                |_| panic!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME)
+                |_| panic!("⚠️ `{KMS_KEY_ID_VAR_NAME}` environment variable not set")
             );
         }
 

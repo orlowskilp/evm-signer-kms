@@ -19,7 +19,7 @@ mod evm_account {
         const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
         lazy_static! {
             static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).unwrap_or_else(
-                |_| panic!("⚠️ `{}` environment variable not set", KMS_KEY_ID_VAR_NAME)
+                |_| panic!("⚠️ `{KMS_KEY_ID_VAR_NAME}` environment variable not set")
             );
         }
 
@@ -31,9 +31,6 @@ mod evm_account {
         // NOTE: Digest signatures from KMS are non-deterministic, so the output of this test will
         // vary. For this reason, the test is not asserting any specific value, but rather just
         // assess whether transaction encoding can be performed without errors.
-        //
-        // The transactions are printed, so that they can be manually verified.
-
         #[tokio::test]
         async fn sign_transaction_succeed() {
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
@@ -51,15 +48,12 @@ mod evm_account {
                 access_list: vec![],
             };
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{:02x?}", signed_tx);
         }
 
         #[tokio::test]
@@ -72,17 +66,12 @@ mod evm_account {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{}", signed_tx_encoding_string);
         }
 
         #[tokio::test]
@@ -95,17 +84,12 @@ mod evm_account {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{}", signed_tx_encoding_string);
         }
 
         #[tokio::test]
@@ -118,17 +102,12 @@ mod evm_account {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{}", signed_tx_encoding_string);
         }
 
         #[tokio::test]
@@ -141,17 +120,12 @@ mod evm_account {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{}", signed_tx_encoding_string);
         }
 
         #[tokio::test]
@@ -164,17 +138,12 @@ mod evm_account {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
 
-            let signed_tx = evm_account
+            evm_account
                 .await
                 .unwrap()
                 .sign_transaction(tx)
                 .await
                 .unwrap();
-
-            let signed_tx_encoding_string = serde_plain::to_string(&signed_tx).unwrap();
-
-            // Print the signed transaction bytes for manual verification
-            println!("{}", signed_tx_encoding_string);
         }
     }
 }

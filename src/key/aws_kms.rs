@@ -87,7 +87,7 @@ impl<'a> AwsKmsKey<'a> {
             .map_err(|error| {
                 Error::new(
                     ErrorKind::NotFound,
-                    format!("Error getting public key: {:?}", error),
+                    format!("Error getting public key: {error:?}"),
                 )
             })?
             .public_key()
@@ -123,7 +123,7 @@ impl<'a> AwsKmsKey<'a> {
             .map_err(|error| {
                 Error::new(
                     ErrorKind::PermissionDenied,
-                    format!("Error signing message: {:?}", error),
+                    format!("Error signing message: {error:?}"),
                 )
             })?
             .signature()

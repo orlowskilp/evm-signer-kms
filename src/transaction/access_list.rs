@@ -42,7 +42,7 @@ where
 
     hex_data_string_to_bytes(&address_string)
         .map_err(|error| {
-            serde::de::Error::custom(format!("Failed to deserialize address: {}", error))
+            serde::de::Error::custom(format!("Failed to deserialize address: {error}"))
         })?
         // Checks whether address is of proper length
         .try_into()
@@ -62,10 +62,7 @@ where
         .map(|storage_key_string| {
             let storage_key_bytes_slice =
                 hex_data_string_to_bytes(&storage_key_string).map_err(|error| {
-                    serde::de::Error::custom(format!(
-                        "Failed to deserialize storage key: {}",
-                        error
-                    ))
+                    serde::de::Error::custom(format!("Failed to deserialize storage key: {error}"))
                 })?;
 
             let storage_key_bytes: StorageKey = storage_key_bytes_slice

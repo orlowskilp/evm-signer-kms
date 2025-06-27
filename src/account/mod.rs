@@ -40,7 +40,7 @@ impl<'a> EvmAccount<'a> {
         .map_err(|error: ParseError| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Failed to parse public key: {}", error),
+                format!("Failed to parse public key: {error}"),
             )
         })?
         .as_bytes();
@@ -104,7 +104,7 @@ impl<'a> EvmAccount<'a> {
         .map_err(|error: ParseError| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Failed to parse signature: {}", error),
+                format!("Failed to parse signature: {error}"),
             )
         })?;
 
@@ -157,7 +157,7 @@ impl<'a> EvmAccount<'a> {
         let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Failed to recover public key: {}", error),
+                format!("Failed to recover public key: {error}"),
             )
         })?;
 
