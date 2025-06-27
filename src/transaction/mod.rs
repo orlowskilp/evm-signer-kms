@@ -1,5 +1,6 @@
 use crate::types::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
+use core::panic;
 use hex;
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
@@ -145,35 +146,25 @@ where
 
 fn compute_address_checksum(address: &str) -> Result<String, Error> {
     let address_ascii_lowercase = address.trim_start_matches(HEX_PREFIX).to_ascii_lowercase();
-    // Compute the hash of the address and represent it as a string of hex digits
-    let hex_hash = hex::encode(Keccak256::digest(&address_ascii_lowercase));
-    // Construct the checksummed address prefixed with '0x'
-    let mut address_checksum = HEX_PREFIX.to_string();
+    // Compute the hash of the address and represent it as numerical values
+    let hex_hash = hex::encode(Keccak256::digest(&address_ascii_lowercase))
+        .chars()
+        // Safety: If this errors, then the keccak256 digest is not valid hex, which should never happen
+        .map(|ch| u8::from_str_radix(&ch.to_string(), HEX_RADIX).expect("Invalid hex character"))
+        .collect::<Vec<_>>();
     // Iterate over the address and hash, and construct the checksummed address according to EIP-55
-    for (i, ch) in address_ascii_lowercase.chars().enumerate() {
-        address_checksum.push(match ch {
-            '0'..='9' => ch,
-            'a'..='f' => {
-                // Panics if (i) the character is not a valid hex digit or (ii) the radix is not
-                // between 2 and 32. This code is safe because:
-                // (i) Will never happen in this match arm as the match condition is ch in [a-f],
-                // (ii) Will never happen in the runtime because the radix is hardcoded to 16.
-                let hex_hash_nibble = u8::from_str_radix(&hex_hash[i..i + 1], HEX_RADIX)
-                    .expect("Invalid hex digit in address hash: This was not supposed to happen!");
-                if hex_hash_nibble > 7 {
-                    ch.to_ascii_uppercase()
-                } else {
-                    ch
-                }
-            }
-            _ => {
-                return Err(Error::new(
-                    ErrorKind::InvalidData,
-                    "Invalid character in address",
-                ));
-            }
-        });
-    }
+    let address_checksum = address_ascii_lowercase.chars().zip(hex_hash).fold(
+        HEX_PREFIX.to_string(),
+        |mut address_checksum, (nibble, hashed_address_nibble)| {
+            address_checksum.push(match nibble {
+                '0'..='9' => nibble,
+                'a'..='f' if hashed_address_nibble > 7 => nibble.to_ascii_uppercase(),
+                'a'..='f' => nibble,
+                _ => panic!("Invalid character in address: {nibble}"),
+            });
+            address_checksum
+        },
+    );
 
     Ok(address_checksum)
 }
