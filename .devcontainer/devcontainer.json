@@ -15,7 +15,8 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
   "remoteEnv": {
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
-    "AWS_REGION": "ap-southeast-1"
+    "AWS_REGION": "ap-southeast-1",
+    "KMS_KEY_ID": "52c9a19f-bcfd-46a7-bd56-6d0cf98d8616"
   },
   "customizations": {
     "vscode": {
@@ -34,7 +35,8 @@
         "ms-azuretools.vscode-docker",
         "ms-vscode.makefile-tools",
         "redhat.vscode-yaml",
-        "AmazonWebServices.aws-toolkit-vscode"
+        "AmazonWebServices.aws-toolkit-vscode",
+        "docker.docker"
       ]
     }
   },
