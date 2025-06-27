@@ -115,7 +115,7 @@ where
             0x0 => vec![],
             _ => vec![self.tx_type],
         };
-        [tx_prefix, rlp_stream.out().to_vec()].concat()
+        [tx_prefix.as_ref(), rlp_stream.out().as_ref()].concat()
     }
 }
 
@@ -160,6 +160,7 @@ fn compute_address_checksum(address: &str) -> Result<String, Error> {
                 '0'..='9' => nibble,
                 'a'..='f' if hashed_address_nibble > 7 => nibble.to_ascii_uppercase(),
                 'a'..='f' => nibble,
+                // Handle better
                 _ => panic!("Invalid character in address: {nibble}"),
             });
             address_checksum

@@ -44,16 +44,12 @@ impl Transaction for AccessListTransaction {
             .begin_unbounded_list()
             .append(self)
             .finalize_unbounded_list();
-
-        let mut rlp_bytes = rlp_stream.out().to_vec();
-        rlp_bytes.insert(0, EIP_2930_TX_TYPE_ID);
-
-        rlp_bytes
+        [[EIP_2930_TX_TYPE_ID].as_ref(), rlp_stream.out().as_ref()].concat()
     }
 }
 
 impl Encodable for AccessListTransaction {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+    fn rlp_append(&self, s: &mut RlpStream) {
         let to = match &self.to {
             Some(to) => to.as_slice(),
             None => &[],
@@ -67,9 +63,9 @@ impl Encodable for AccessListTransaction {
             .append(&self.value)
             .append(&self.data)
             .begin_unbounded_list();
-        for access in &self.access_list {
-            s.append(access);
-        }
+        self.access_list.iter().for_each(|key| {
+            s.append(key);
+        });
         s.finalize_unbounded_list()
     }
 }

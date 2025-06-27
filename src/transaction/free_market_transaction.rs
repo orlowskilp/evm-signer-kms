@@ -44,11 +44,7 @@ impl Transaction for FreeMarketTransaction {
             .begin_unbounded_list()
             .append(self)
             .finalize_unbounded_list();
-
-        let mut rlp_bytes = rlp_stream.out().to_vec();
-        rlp_bytes.insert(0, EIP_1559_TX_TYPE_ID);
-
-        rlp_bytes
+        [[EIP_1559_TX_TYPE_ID].as_ref(), rlp_stream.out().as_ref()].concat()
     }
 }
 
@@ -68,9 +64,9 @@ impl Encodable for FreeMarketTransaction {
             .append(&self.value)
             .append(&self.data)
             .begin_unbounded_list();
-        for access in &self.access_list {
-            s.append(access);
-        }
+        self.access_list.iter().for_each(|key| {
+            s.append(key);
+        });
         s.finalize_unbounded_list()
     }
 }

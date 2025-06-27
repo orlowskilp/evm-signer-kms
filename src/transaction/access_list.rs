@@ -1,5 +1,5 @@
 use super::{AccountAddress, hex_data_string_to_bytes, validate_address_checksum};
-use rlp::Encodable;
+use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize};
 
 const STORAGE_KEY_LEN: usize = 32;
@@ -18,13 +18,13 @@ pub struct Access {
 }
 
 impl Encodable for Access {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+    fn rlp_append(&self, s: &mut RlpStream) {
         s.begin_unbounded_list()
             .append(&self.address.as_slice())
             .begin_unbounded_list();
-        for storage_key in &self.storage_keys {
-            s.append(&storage_key.as_slice());
-        }
+        self.storage_keys.iter().for_each(|key| {
+            s.append(&key.as_slice());
+        });
         s.finalize_unbounded_list();
         s.finalize_unbounded_list()
     }
@@ -35,18 +35,16 @@ where
     D: Deserializer<'de>,
 {
     let address_string = String::deserialize(deserializer)?;
-
     if !validate_address_checksum(&address_string) {
         return Err(serde::de::Error::custom("Invalid address checksum"));
     }
-
     hex_data_string_to_bytes(&address_string)
-        .map_err(|error| {
-            serde::de::Error::custom(format!("Failed to deserialize address: {error}"))
-        })?
+        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize address: {err}")))?
         // Checks whether address is of proper length
         .try_into()
-        .map_err(|_| serde::de::Error::custom("Invalid address length"))
+        .map_err(|v: Vec<_>| {
+            serde::de::Error::custom(format!("Invalid address length: {}", v.len()))
+        })
 }
 
 fn deserialize_storage_keys_string_list<'de, D>(
@@ -55,21 +53,17 @@ fn deserialize_storage_keys_string_list<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let storage_key_strings_vec: Vec<String> = Vec::deserialize(deserializer)?;
-
-    storage_key_strings_vec
+    Vec::<String>::deserialize(deserializer)?
         .into_iter()
         .map(|storage_key_string| {
-            let storage_key_bytes_slice =
-                hex_data_string_to_bytes(&storage_key_string).map_err(|error| {
-                    serde::de::Error::custom(format!("Failed to deserialize storage key: {error}"))
-                })?;
-
-            let storage_key_bytes: StorageKey = storage_key_bytes_slice
+            hex_data_string_to_bytes(&storage_key_string)
+                .map_err(|err| {
+                    serde::de::Error::custom(format!("Failed to deserialize storage key: {err}"))
+                })?
                 .try_into()
-                .map_err(|_| serde::de::Error::custom("Invalid storage key length"))?;
-
-            Ok(storage_key_bytes)
+                .map_err(|v: Vec<_>| {
+                    serde::de::Error::custom(format!("Invalid address length: {}", v.len()))
+                })
         })
         .collect()
 }
