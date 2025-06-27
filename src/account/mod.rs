@@ -5,14 +5,20 @@ use crate::{
     transaction::{SignedTransaction, Transaction},
     types::{Keccak256Digest, PublicKey, SIGNATURE_COMPONENT_LENGTH, SignatureComponent},
 };
-use asn1::{BigInt, BitString, ParseError, Sequence};
+use asn1::{BigInt, BitString, ObjectIdentifier, ParseError, ParseErrorKind, Sequence};
 use eip2::wrap_s;
 use secp256k1::{
     Message, Secp256k1,
     ecdsa::{RecoverableSignature, RecoveryId},
 };
 use sha3::{Digest, Keccak256};
-use std::{cmp::Ordering, io};
+use std::{
+    cmp::Ordering,
+    io::{Error, ErrorKind},
+};
+
+const ASN1_EC_PUBLIC_KEY_OID: &str = "1.2.840.10045.2.1";
+const ASN1_EC_SECP256K1_PK_TYPE_OID: &str = "1.3.132.0.10";
 
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
     Into::<Keccak256Digest>::into(Keccak256::digest(data))
@@ -29,37 +35,50 @@ pub struct EvmAccount<'a> {
 }
 
 impl<'a> EvmAccount<'a> {
-    fn decode_public_key(public_key_blob: &[u8]) -> Result<PublicKey, io::Error> {
+    fn decode_public_key(public_key_blob: &[u8]) -> Result<PublicKey, Error> {
         // Nested closures to have only one error mapping routine
-        let public_key = asn1::parse(public_key_blob, |parser| {
+        let decoded_uncompressed_public_key = asn1::parse(public_key_blob, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
-                let _ = parser.read_element::<Sequence>()?;
+                parser.read_element::<Sequence>()?.parse(|parser| {
+                    // Check if the public key is of the expected type
+                    let oid = parser.read_element::<ObjectIdentifier>()?;
+                    if oid.to_string() != ASN1_EC_PUBLIC_KEY_OID {
+                        return Err(ParseError::new(ParseErrorKind::InvalidValue));
+                    }
+                    // Check if the public key is of the expected curve type
+                    let curve_oid = parser.read_element::<ObjectIdentifier>()?;
+                    if curve_oid.to_string() != ASN1_EC_SECP256K1_PK_TYPE_OID {
+                        return Err(ParseError::new(ParseErrorKind::InvalidValue));
+                    }
+                    Ok(())
+                })?;
                 parser.read_element::<BitString>()
             })
         })
-        .map_err(|error: ParseError| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("Failed to parse public key: {error}"),
+        .map_err(|err| {
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Failed to parse public key: {err}"),
             )
         })?
         .as_bytes();
-
         // Public key is 65-bytes long, with the first 0x04 byte indicating the EC prefix
-        public_key[1..].try_into().map_err(|_| {
-            // This will never happen for secp256k1 public keys
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                "Invalid public key format: This was not supposed to happen!",
-            )
-        })
+        decoded_uncompressed_public_key[1..]
+            .try_into()
+            .map_err(|_| {
+                // This will never happen for secp256k1 public keys
+                Error::new(
+                    ErrorKind::InvalidData,
+                    "Invalid public key format: This was not supposed to happen!",
+                )
+            })
     }
 
     /// Axiomatic constructor for `EvmAccount` which ties to the provided `KmsKey` instance.
     ///
     /// The constructor eagerly decodes the uncompressed public key from the KMS key, strips the
     /// `0x04` uncompressed elliptic curve prefix and stores it in the `public_key` field.
-    pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<EvmAccount<'a>, io::Error> {
+    pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<EvmAccount<'a>, Error> {
         let public_key_der = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&public_key_der)?;
 
@@ -70,28 +89,18 @@ impl<'a> EvmAccount<'a> {
     }
 
     fn to_signature_component(decoded_data: &[u8]) -> SignatureComponent {
-        let mut component = [0u8; SIGNATURE_COMPONENT_LENGTH];
-
-        match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
-            Ordering::Greater => {
-                // Drop the meaningless leading sign indicator zero byte
-                component.copy_from_slice(&decoded_data[1..]);
-            }
-            Ordering::Equal => {
-                component.copy_from_slice(decoded_data);
-            }
-            Ordering::Less => {
-                let slice = &mut component[1..];
-                slice.copy_from_slice(decoded_data);
-            }
-        }
-
-        component
+        let fitted_data = match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
+            Ordering::Greater => &decoded_data[1..],
+            Ordering::Equal => decoded_data,
+            Ordering::Less => &[[0].as_ref(), decoded_data].concat(),
+        };
+        TryInto::<SignatureComponent>::try_into(fitted_data)
+            .expect("Failed to convert decoded data to signature component")
     }
 
     fn parse_signature(
         signature_der: &[u8],
-    ) -> Result<(SignatureComponent, SignatureComponent), io::Error> {
+    ) -> Result<(SignatureComponent, SignatureComponent), Error> {
         // Nested closures to have only one error mapping routine
         let (r, s) = asn1::parse(signature_der, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
@@ -102,8 +111,8 @@ impl<'a> EvmAccount<'a> {
             })
         })
         .map_err(|error: ParseError| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
+            Error::new(
+                ErrorKind::InvalidData,
                 format!("Failed to parse signature: {error}"),
             )
         })?;
@@ -150,13 +159,13 @@ impl<'a> EvmAccount<'a> {
     async fn sign_bytes(
         &self,
         digest: &[u8],
-    ) -> Result<(u32, SignatureComponent, SignatureComponent), io::Error> {
+    ) -> Result<(u32, SignatureComponent, SignatureComponent), Error> {
         let signature = self.kms_key.sign(digest).await?;
         let (r, s) = Self::parse_signature(&signature)?;
 
         let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
+            Error::new(
+                ErrorKind::InvalidData,
                 format!("Failed to recover public key: {error}"),
             )
         })?;
@@ -172,7 +181,7 @@ impl<'a> EvmAccount<'a> {
     pub async fn sign_transaction<T: Transaction>(
         &self,
         tx: T,
-    ) -> Result<SignedTransaction<T>, io::Error> {
+    ) -> Result<SignedTransaction<T>, Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
         let signed_bytes = self.sign_bytes(&digest);
@@ -186,7 +195,7 @@ impl<'a> EvmAccount<'a> {
 #[cfg(test)]
 mod unit_tests {
     use super::*;
-    use crate::types::{KECCAK_256_LENGTH, PUBLIC_KEY_LENGTH};
+    use crate::types::{KECCAK_256_LENGTH, UNCOMPRESSED_PUBLIC_KEY_LENGTH};
 
     const TEST_KEY_DER: [u8; 88] = [
         0x30, 0x56, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05,
@@ -197,7 +206,7 @@ mod unit_tests {
         0xf7, 0xee, 0x30, 0xd0, 0xaa, 0x68, 0x00, 0x88, 0xe1, 0xa1, 0xdd, 0x80, 0xc0,
     ];
 
-    const TEST_PUBLIC_KEY: [u8; PUBLIC_KEY_LENGTH] = [
+    const TEST_PUBLIC_KEY: [u8; UNCOMPRESSED_PUBLIC_KEY_LENGTH] = [
         0xf9, 0x52, 0xb9, 0x6e, 0xb7, 0xa7, 0x84, 0x5a, 0xda, 0xbe, 0x93, 0x4b, 0xe3, 0x43, 0x8d,
         0x92, 0xe9, 0x97, 0x64, 0x78, 0x56, 0xdb, 0xc4, 0x89, 0x7c, 0x66, 0x1d, 0x2e, 0x8f, 0x39,
         0xbe, 0x7a, 0x27, 0x83, 0x23, 0x47, 0x42, 0xd4, 0x11, 0xb3, 0xc9, 0xe4, 0x55, 0x4d, 0xb4,
