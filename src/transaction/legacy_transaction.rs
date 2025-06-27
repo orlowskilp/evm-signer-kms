@@ -1,7 +1,7 @@
 use super::{
     AccountAddress, Transaction, deserialize_address_string_option, deserialize_hex_data_string,
 };
-use rlp::Encodable;
+use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
 /// Represents a legacy Ethereum transaction.
@@ -31,7 +31,7 @@ pub struct LegacyTransaction {
 
 impl Transaction for LegacyTransaction {
     fn encode(&self) -> Vec<u8> {
-        let mut rlp_stream = rlp::RlpStream::new();
+        let mut rlp_stream = RlpStream::new();
         rlp_stream
             .begin_unbounded_list()
             .append(self)
@@ -42,7 +42,7 @@ impl Transaction for LegacyTransaction {
 }
 
 impl Encodable for LegacyTransaction {
-    fn rlp_append(&self, s: &mut rlp::RlpStream) {
+    fn rlp_append(&self, s: &mut RlpStream) {
         let to = match &self.to {
             Some(to) => to.as_slice(),
             None => &[],

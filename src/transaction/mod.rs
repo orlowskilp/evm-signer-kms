@@ -1,9 +1,8 @@
 use crate::types::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
-use core::panic;
 use hex;
 use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de, ser};
 use sha3::{Digest, Keccak256};
 use std::{
     fmt::Debug,
@@ -43,7 +42,7 @@ pub trait Transaction:
     // For debugging
     Debug +
     // To satisfy ServiceFn bound required by Lambda runtime
-    serde::de::DeserializeOwned + serde::ser::Serialize
+    de::DeserializeOwned + ser::Serialize
 {
     fn encode(&self) -> Vec<u8>;
 }
@@ -125,7 +124,7 @@ where
 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::ser::Serializer,
+        S: ser::Serializer,
     {
         format!("{}{}", HEX_PREFIX, hex::encode(self.encode())).serialize(serializer)
     }
@@ -141,7 +140,7 @@ where
     D: Deserializer<'de>,
 {
     hex_data_string_to_bytes(&String::deserialize(deserializer)?)
-        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize hex data: {err}")))
+        .map_err(|err| de::Error::custom(format!("Failed to deserialize hex data: {err}")))
 }
 
 fn compute_address_checksum(address: &str) -> Result<String, Error> {
@@ -153,21 +152,23 @@ fn compute_address_checksum(address: &str) -> Result<String, Error> {
         .map(|ch| u8::from_str_radix(&ch.to_string(), HEX_RADIX).expect("Invalid hex character"))
         .collect::<Vec<_>>();
     // Iterate over the address and hash, and construct the checksummed address according to EIP-55
-    let address_checksum = address_ascii_lowercase.chars().zip(hex_hash).fold(
+    address_ascii_lowercase.chars().zip(hex_hash).try_fold(
         HEX_PREFIX.to_string(),
         |mut address_checksum, (nibble, hashed_address_nibble)| {
             address_checksum.push(match nibble {
                 '0'..='9' => nibble,
                 'a'..='f' if hashed_address_nibble > 7 => nibble.to_ascii_uppercase(),
                 'a'..='f' => nibble,
-                // Handle better
-                _ => panic!("Invalid character in address: {nibble}"),
+                _ => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        format!("Invalid character in address: {nibble}"),
+                    ));
+                }
             });
-            address_checksum
+            Ok(address_checksum)
         },
-    );
-
-    Ok(address_checksum)
+    )
 }
 
 fn validate_address_checksum(address: &str) -> bool {
@@ -191,11 +192,11 @@ where
 {
     let address_string = String::deserialize(deserializer)?;
     if !validate_address_checksum(&address_string) {
-        return Err(serde::de::Error::custom("Invalid address checksum"));
+        return Err(de::Error::custom("Invalid address checksum"));
     }
 
     let address_bytes = hex_data_string_to_bytes(&address_string)
-        .map_err(|err| serde::de::Error::custom(format!("Failed to deserialize address: {err}")))?;
+        .map_err(|err| de::Error::custom(format!("Failed to deserialize address: {err}")))?;
     if address_bytes.is_empty() {
         return Ok(None);
     }
@@ -204,7 +205,7 @@ where
         // Checks whether address is of proper length
         .try_into()
         .map(Some)
-        .map_err(|_| serde::de::Error::custom("Invalid address length"))
+        .map_err(|_| de::Error::custom("Invalid address length"))
 }
 
 #[cfg(test)]
