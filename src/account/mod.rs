@@ -88,13 +88,14 @@ impl<'a> EvmAccount<'a> {
         })
     }
 
-    fn to_signature_component(decoded_data: &[u8]) -> SignatureComponent {
+    fn fit_signature_component(decoded_data: &[u8]) -> SignatureComponent {
         let fitted_data = match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
             Ordering::Greater => &decoded_data[1..],
             Ordering::Equal => decoded_data,
             Ordering::Less => &[[0].as_ref(), decoded_data].concat(),
         };
         TryInto::<SignatureComponent>::try_into(fitted_data)
+            // Safety: Not going to happen, as we ensure the length is always 32 bytes
             .expect("Failed to convert decoded data to signature component")
     }
 
@@ -116,11 +117,9 @@ impl<'a> EvmAccount<'a> {
                 format!("Failed to parse signature: {error}"),
             )
         })?;
-
         // Remove the leading sign indicator zero byte if present
-        let r = Self::to_signature_component(r.as_bytes());
-        let s = wrap_s(Self::to_signature_component(s.as_bytes()));
-
+        let r = Self::fit_signature_component(r.as_bytes());
+        let s = wrap_s(Self::fit_signature_component(s.as_bytes()));
         Ok((r, s))
     }
 
@@ -132,28 +131,26 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<u32, secp256k1::Error> {
         let secp_context = Secp256k1::verification_only();
         // Compact signature is concatenation of 32-byte r and 32-byte s with no headers
-        let mut compact_signature = r.to_vec();
-        compact_signature.extend_from_slice(s);
-
+        let compact_signature = [r.as_ref(), s.as_ref()].concat();
         let message = Message::from_digest_slice(digest)?;
-
         // Possible v values are 0 or 1
-        for v in 0..2 {
-            let signature =
-                RecoverableSignature::from_compact(&compact_signature, RecoveryId::try_from(v)?)?;
-
+        for v in 0..=1 {
+            let signature = RecoverableSignature::from_compact(
+                &compact_signature,
+                // Safety: Not going to panic as the allowed values for v are 0 and 1, which correspond to the recovery ID.
+                RecoveryId::try_from(v).expect("Invalid recovery ID value"),
+            )?;
             // Uncompressed public key is 65 bytes long, beginning with 0x04 to indicate it is uncompressed
             let pub_key_uncompressed_bytes = secp_context
                 .recover_ecdsa(&message, &signature)?
                 .serialize_uncompressed();
-
             // Drop the 0x04 uncompressed EC prefix
             if pub_key_uncompressed_bytes[1..] == *public_key {
                 return Ok(v as u32);
             }
         }
-
-        Err(secp256k1::Error::InvalidPublicKeySum)
+        // If we're here, this means that the signature does not match the public key
+        Err(secp256k1::Error::InvalidSignature)
     }
 
     async fn sign_bytes(
@@ -162,14 +159,12 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<(u32, SignatureComponent, SignatureComponent), Error> {
         let signature = self.kms_key.sign(digest).await?;
         let (r, s) = Self::parse_signature(&signature)?;
-
         let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
             Error::new(
                 ErrorKind::InvalidData,
                 format!("Failed to recover public key: {error}"),
             )
         })?;
-
         Ok((v, r, s))
     }
 
@@ -185,9 +180,7 @@ impl<'a> EvmAccount<'a> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
         let signed_bytes = self.sign_bytes(&digest);
-
         let (v, r, s) = signed_bytes.await?;
-
         Ok(SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
     }
 }
