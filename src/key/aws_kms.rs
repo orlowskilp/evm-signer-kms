@@ -60,10 +60,9 @@ impl<'a> AwsKmsKey<'a> {
     ///
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation.
-    pub async fn new(kms_key_id: &'a str) -> AwsKmsKey<'a> {
+    pub async fn new(kms_key_id: &'a str) -> Self {
         let config = aws_config::from_env().load().await;
-
-        AwsKmsKey { config, kms_key_id }
+        Self { config, kms_key_id }
     }
 
     /// Retrieves the public key associated with the private key.
@@ -77,12 +76,10 @@ impl<'a> AwsKmsKey<'a> {
     /// 3056301006072a8648ce3d020106052b8104000a034200043b5ca9876d1c4ca39838fd8ef1bc4b138a1edf73ad8e29b9f6338f39e4a6f64c7d83df86b01deb689c6d14536413fce6752f4df7240d7180b53f27f5611d06a3
     /// ```
     pub async fn get_public_key(&self) -> Result<Vec<u8>> {
-        let client = Client::new(&self.config);
-
-        let get_public_key_output = client.get_public_key().key_id(self.kms_key_id).send();
-
-        // Retrieve DER encoded public key
-        let public_key_blob = get_public_key_output
+        Client::new(&self.config)
+            .get_public_key()
+            .key_id(self.kms_key_id)
+            .send()
             .await
             .map_err(|error| {
                 Error::new(
@@ -96,10 +93,8 @@ impl<'a> AwsKmsKey<'a> {
                     ErrorKind::InvalidData,
                     "Invalid response. No public key found",
                 )
-            })?
-            .clone();
-
-        Ok(public_key_blob.into_inner())
+            })
+            .map(|pk| pk.to_owned().into_inner())
     }
 
     /// Signs a message digest using the private key.
@@ -108,17 +103,13 @@ impl<'a> AwsKmsKey<'a> {
     ///
     /// Returns a DER encoded signature. Note that the signature is different every time.
     pub async fn sign(&self, message: &[u8]) -> Result<Vec<u8>> {
-        let client = Client::new(&self.config);
-
-        let sign_output = client
+        Client::new(&self.config)
             .sign()
             .key_id(self.kms_key_id)
             .signing_algorithm(SigningAlgorithmSpec::EcdsaSha256)
             .message_type(MessageType::Digest)
             .message(Blob::new(message))
-            .send();
-
-        let signature = sign_output
+            .send()
             .await
             .map_err(|error| {
                 Error::new(
@@ -132,10 +123,7 @@ impl<'a> AwsKmsKey<'a> {
                     ErrorKind::InvalidData,
                     "Invalid response data. Signature not found",
                 )
-            })?
-            .to_owned()
-            .into_inner();
-
-        Ok(signature)
+            })
+            .map(|sig| sig.to_owned().into_inner())
     }
 }
