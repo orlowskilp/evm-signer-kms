@@ -81,10 +81,10 @@ impl<'a> AwsKmsKey<'a> {
             .key_id(self.kms_key_id)
             .send()
             .await
-            .map_err(|error| {
+            .map_err(|err| {
                 Error::new(
                     ErrorKind::NotFound,
-                    format!("Error getting public key: {error:?}"),
+                    format!("Error getting public key: {err:?}"),
                 )
             })?
             .public_key()
@@ -111,10 +111,10 @@ impl<'a> AwsKmsKey<'a> {
             .message(Blob::new(message))
             .send()
             .await
-            .map_err(|error| {
+            .map_err(|err| {
                 Error::new(
                     ErrorKind::PermissionDenied,
-                    format!("Error signing message: {error:?}"),
+                    format!("Error signing message: {err:?}"),
                 )
             })?
             .signature()

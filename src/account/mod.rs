@@ -81,9 +81,12 @@ impl<'a> EvmAccount<'a> {
     }
 
     fn fit_signature_component(decoded_data: &[u8]) -> SignatureComponent {
+        // The decoded signature component may be between 31 and 33 bytes long.
         let fitted_data = match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
+            // Trim unnecessary sign indicator
             Ordering::Greater => &decoded_data[1..],
             Ordering::Equal => decoded_data,
+            // Pad with leading zero if necessary
             Ordering::Less => &[[0].as_ref(), decoded_data].concat(),
         };
         fitted_data
@@ -95,7 +98,6 @@ impl<'a> EvmAccount<'a> {
     fn parse_signature(
         signature_der: &[u8],
     ) -> Result<(SignatureComponent, SignatureComponent), Error> {
-        // Nested closures to have only one error mapping routine
         asn1::parse(signature_der, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 let r = parser.read_element::<BigInt>()?;
@@ -103,17 +105,17 @@ impl<'a> EvmAccount<'a> {
                 Ok((r.as_bytes(), s.as_bytes()))
             })
         })
-        .map_err(|err: ParseError| {
-            Error::new(
-                ErrorKind::InvalidData,
-                format!("Failed to parse signature: {err}"),
-            )
-        })
         .map(|(r, s)| {
             // Remove the leading sign indicator zero byte if present and reflect s around the y-axis
             (
                 Self::fit_signature_component(r),
                 reflect_s(Self::fit_signature_component(s)),
+            )
+        })
+        .map_err(|err: ParseError| {
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Failed to parse signature: {err}"),
             )
         })
     }
@@ -128,10 +130,9 @@ impl<'a> EvmAccount<'a> {
         let message_digest = Message::from_digest(digest);
         for recid in [RecoveryId::Zero, RecoveryId::One] {
             let recovered_sig = RecoverableSignature::from_compact(&compact_signature, recid)?;
-            let uncompressed_pub_key_bytes = Secp256k1::verification_only()
-                .recover_ecdsa(&message_digest, &recovered_sig)?
-                .serialize_uncompressed();
-            if uncompressed_pub_key_bytes == public_key {
+            let recovered_pub_key =
+                Secp256k1::verification_only().recover_ecdsa(&message_digest, &recovered_sig)?;
+            if recovered_pub_key.serialize_uncompressed() == public_key {
                 return Ok(recid.into());
             }
         }
@@ -145,13 +146,13 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<(SignatureComponent, SignatureComponent, u32), Error> {
         let (r, s) = Self::parse_signature(&self.kms_key.sign(&digest).await?)?;
         Self::recover_public_key(self.public_key, digest, &r, &s)
+            .map(|v| (r, s, v as u32))
             .map_err(|err| {
                 Error::new(
                     ErrorKind::InvalidData,
                     format!("Failed to recover public key: {err}"),
                 )
             })
-            .map(|v| (r, s, v as u32))
     }
 
     /// Signs the provided transaction with the EVM account's private key.
