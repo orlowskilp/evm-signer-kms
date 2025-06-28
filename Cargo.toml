@@ -1,6 +1,6 @@
 [package]
 name = "evm-signer-kms"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Lukasz Orlowski <lukasz@orlowski.io>"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 documentation = "https://docs.rs/evm-signer-kms"
