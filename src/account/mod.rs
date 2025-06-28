@@ -106,6 +106,8 @@ impl<'a> EvmAccount<'a> {
             })
         })
         .map(|(r, s)| {
+            tracing::debug!("Parsed R: 0x{}", hex::encode(r));
+            tracing::debug!("Parsed S: 0x{}", hex::encode(s));
             // Remove the leading sign indicator zero byte if present and reflect s around the y-axis
             (
                 Self::fit_signature_component(r),
@@ -113,10 +115,9 @@ impl<'a> EvmAccount<'a> {
             )
         })
         .map_err(|err: ParseError| {
-            Error::new(
-                ErrorKind::InvalidData,
-                format!("Failed to parse signature: {err}"),
-            )
+            let msg = format!("Failed to parse signature: {err}");
+            tracing::error!(msg);
+            Error::new(ErrorKind::InvalidData, msg)
         })
     }
 
@@ -133,10 +134,14 @@ impl<'a> EvmAccount<'a> {
             let recovered_pub_key =
                 Secp256k1::verification_only().recover_ecdsa(&message_digest, &recovered_sig)?;
             if recovered_pub_key.serialize_uncompressed() == public_key {
+                tracing::debug!(
+                    "Recovered public key matches the provided public key with recid: {recid:?}"
+                );
                 return Ok(recid.into());
             }
         }
         // If we're here, this means that the signature does not match the public key
+        tracing::error!("Signature verification failed: public key does not match the signature");
         Err(secp256k1::Error::InvalidSignature)
     }
 
@@ -148,10 +153,9 @@ impl<'a> EvmAccount<'a> {
         Self::recover_public_key(self.public_key, digest, &r, &s)
             .map(|v| (r, s, v as u32))
             .map_err(|err| {
-                Error::new(
-                    ErrorKind::InvalidData,
-                    format!("Failed to recover public key: {err}"),
-                )
+                let msg = format!("Failed to recover public key: {err}");
+                tracing::error!(msg);
+                Error::new(ErrorKind::InvalidData, msg)
             })
     }
 
@@ -176,6 +180,7 @@ impl<'a> EvmAccount<'a> {
 mod unit_tests {
     use super::*;
     use crate::types::{KECCAK_256_LENGTH, UNCOMPRESSED_PUBLIC_KEY_LENGTH};
+    use tracing_test::traced_test;
 
     const TEST_KEY_DER: [u8; 88] = [
         0x30, 0x56, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05,
@@ -233,36 +238,32 @@ mod unit_tests {
     ];
 
     #[test]
+    #[traced_test]
     fn decode_public_key() {
         let input = TEST_KEY_DER;
         let left = TEST_PUBLIC_KEY.to_vec();
-
         let right = EvmAccount::decode_public_key(&input).unwrap();
-
         assert_eq!(left, right);
     }
 
     #[test]
+    #[traced_test]
     fn parse_signature() {
         let input = &TEST_SIGNATURE;
-
         let (r, s) = EvmAccount::parse_signature(input).unwrap();
-
         assert_eq!(r, TEST_R_1);
         assert_eq!(s, TEST_S_1);
     }
 
     #[test]
+    #[traced_test]
     fn recover_public_key() {
-        let r = TEST_R_2;
-        let s = TEST_S_2;
         let input_public_key = TEST_PUBLIC_KEY;
         let input_digest = TEST_DIGEST;
-
         let left = 0i32;
-
-        let right = EvmAccount::recover_public_key(input_public_key, input_digest, &r, &s).unwrap();
-
+        let right =
+            EvmAccount::recover_public_key(input_public_key, input_digest, &TEST_R_2, &TEST_S_2)
+                .unwrap();
         assert_eq!(left, right);
     }
 }
