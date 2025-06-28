@@ -21,7 +21,7 @@ const ASN1_EC_PUBLIC_KEY_OID: &str = "1.2.840.10045.2.1";
 const ASN1_EC_SECP256K1_PK_TYPE_OID: &str = "1.3.132.0.10";
 
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
-    Into::<Keccak256Digest>::into(Keccak256::digest(data))
+    Keccak256::digest(data).into()
 }
 
 /// Representation of EVM account for signing transactions with AWS KMS keys.
@@ -36,7 +36,6 @@ pub struct EvmAccount<'a> {
 
 impl<'a> EvmAccount<'a> {
     fn decode_public_key(public_key_blob: &[u8]) -> Result<PublicKey, Error> {
-        // Nested closures to have only one error mapping routine
         asn1::parse(public_key_blob, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 parser.read_element::<Sequence>()?.parse(|parser| {
@@ -90,9 +89,10 @@ impl<'a> EvmAccount<'a> {
             Ordering::Equal => decoded_data,
             Ordering::Less => &[[0].as_ref(), decoded_data].concat(),
         };
-        TryInto::<SignatureComponent>::try_into(fitted_data)
-            // Safety: Not going to happen, as we ensure the length is always 32 bytes
-            .expect("Failed to convert decoded data to signature component")
+        fitted_data
+            .try_into()
+            // Safety: We ensure that the length is always SIGNATURE_COMPONENT_LENGTH
+            .expect("Invalid signature component length")
     }
 
     fn parse_signature(
@@ -122,15 +122,14 @@ impl<'a> EvmAccount<'a> {
     }
 
     fn recover_public_key(
-        public_key: &[u8],
-        digest: &[u8],
+        public_key: PublicKey,
+        digest: Keccak256Digest,
         r: &SignatureComponent,
         s: &SignatureComponent,
     ) -> Result<u32, secp256k1::Error> {
         let secp_context = Secp256k1::verification_only();
         let compact_signature = [r.as_ref(), s.as_ref()].concat();
-        // TODO: The digest should be of fixed size.
-        let message = Message::from_digest_slice(digest)?;
+        let message = Message::from_digest(digest);
         for v in 0u32..=1 {
             let signature = RecoverableSignature::from_compact(
                 &compact_signature,
@@ -150,10 +149,10 @@ impl<'a> EvmAccount<'a> {
 
     async fn sign_bytes(
         &self,
-        digest: &[u8],
+        digest: Keccak256Digest,
     ) -> Result<(u32, SignatureComponent, SignatureComponent), Error> {
-        let (r, s) = Self::parse_signature(&self.kms_key.sign(digest).await?)?;
-        Self::recover_public_key(&self.public_key, digest, &r, &s)
+        let (r, s) = Self::parse_signature(&self.kms_key.sign(&digest).await?)?;
+        Self::recover_public_key(self.public_key, digest, &r, &s)
             .map_err(|err| {
                 Error::new(
                     ErrorKind::InvalidData,
@@ -174,7 +173,7 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<SignedTransaction<T>, Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
-        self.sign_bytes(&digest)
+        self.sign_bytes(digest)
             .await
             .map(|(v, r, s)| SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
     }
@@ -269,8 +268,7 @@ mod unit_tests {
 
         let left = 0u32;
 
-        let right =
-            EvmAccount::recover_public_key(&input_public_key, &input_digest, &r, &s).unwrap();
+        let right = EvmAccount::recover_public_key(input_public_key, input_digest, &r, &s).unwrap();
 
         assert_eq!(left, right);
     }
