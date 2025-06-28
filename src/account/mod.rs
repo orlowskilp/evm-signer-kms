@@ -17,7 +17,9 @@ use std::{
     io::{Error, ErrorKind},
 };
 
+/// OIDs for the ASN.1 encoded EC public key
 const ASN1_EC_PUBLIC_KEY_OID: &str = "1.2.840.10045.2.1";
+/// OID for the SECP256K1 curve type in ASN.1 encoding
 const ASN1_EC_SECP256K1_PK_TYPE_OID: &str = "1.3.132.0.10";
 
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
@@ -51,21 +53,16 @@ impl<'a> EvmAccount<'a> {
                     }
                     Ok(())
                 })?;
-                parser.read_element::<BitString>().map(|bs| bs.as_bytes())
+                parser
+                    .read_element::<BitString>()
+                    // This will not fail as we verified the key type above
+                    .map(|bs| bs.as_bytes().try_into().expect("Invalid public key length"))
             })
         })
         .map_err(|err| {
             Error::new(
                 ErrorKind::InvalidData,
                 format!("Failed to parse public key: {err}"),
-            )
-        })?
-        .try_into()
-        .map_err(|err| {
-            // This will never happen since we verified OIDs
-            Error::new(
-                ErrorKind::InvalidData,
-                format!("Invalid public key format: {err}"),
             )
         })
     }
@@ -126,21 +123,16 @@ impl<'a> EvmAccount<'a> {
         digest: Keccak256Digest,
         r: &SignatureComponent,
         s: &SignatureComponent,
-    ) -> Result<u32, secp256k1::Error> {
-        let secp_context = Secp256k1::verification_only();
+    ) -> Result<i32, secp256k1::Error> {
         let compact_signature = [r.as_ref(), s.as_ref()].concat();
-        let message = Message::from_digest(digest);
-        for v in 0u32..=1 {
-            let signature = RecoverableSignature::from_compact(
-                &compact_signature,
-                // Safety: Not going to panic as the allowed values for v are 0 and 1, which correspond to the recovery ID.
-                RecoveryId::try_from(v as i32).expect("Invalid recovery ID value"),
-            )?;
-            let uncompressed_pub_key_bytes = secp_context
-                .recover_ecdsa(&message, &signature)?
+        let message_digest = Message::from_digest(digest);
+        for recid in [RecoveryId::Zero, RecoveryId::One] {
+            let recovered_sig = RecoverableSignature::from_compact(&compact_signature, recid)?;
+            let uncompressed_pub_key_bytes = Secp256k1::verification_only()
+                .recover_ecdsa(&message_digest, &recovered_sig)?
                 .serialize_uncompressed();
             if uncompressed_pub_key_bytes == public_key {
-                return Ok(v);
+                return Ok(recid.into());
             }
         }
         // If we're here, this means that the signature does not match the public key
@@ -150,7 +142,7 @@ impl<'a> EvmAccount<'a> {
     async fn sign_bytes(
         &self,
         digest: Keccak256Digest,
-    ) -> Result<(u32, SignatureComponent, SignatureComponent), Error> {
+    ) -> Result<(SignatureComponent, SignatureComponent, u32), Error> {
         let (r, s) = Self::parse_signature(&self.kms_key.sign(&digest).await?)?;
         Self::recover_public_key(self.public_key, digest, &r, &s)
             .map_err(|err| {
@@ -159,7 +151,7 @@ impl<'a> EvmAccount<'a> {
                     format!("Failed to recover public key: {err}"),
                 )
             })
-            .map(|v| (v, r, s))
+            .map(|v| (r, s, v as u32))
     }
 
     /// Signs the provided transaction with the EVM account's private key.
@@ -175,7 +167,7 @@ impl<'a> EvmAccount<'a> {
         let digest = keccak256_digest(&tx_encoding);
         self.sign_bytes(digest)
             .await
-            .map(|(v, r, s)| SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
+            .map(|(r, s, v)| SignedTransaction::new(tx, &tx_encoding, digest, r, s, v))
     }
 }
 
@@ -266,7 +258,7 @@ mod unit_tests {
         let input_public_key = TEST_PUBLIC_KEY;
         let input_digest = TEST_DIGEST;
 
-        let left = 0u32;
+        let left = 0i32;
 
         let right = EvmAccount::recover_public_key(input_public_key, input_digest, &r, &s).unwrap();
 

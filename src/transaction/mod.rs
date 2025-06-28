@@ -81,9 +81,9 @@ where
         tx: T,
         encoding: &[u8],
         digest: Keccak256Digest,
-        v: u32,
         r: SignatureComponent,
         s: SignatureComponent,
+        v: u32,
     ) -> Self {
         let (tx_type, v) = match encoding[0] {
             tx_type if tx_type < MAX_TX_TYPE_ID => (tx_type, v),
@@ -94,9 +94,9 @@ where
             tx_type,
             tx,
             digest,
-            v,
             r,
             s,
+            v,
         }
     }
 
