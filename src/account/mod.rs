@@ -26,7 +26,7 @@ fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
 
 /// Representation of EVM account for signing transactions with AWS KMS keys.
 pub struct EvmAccount<'a> {
-    /// Raw, uncompressed 64-byte public key derived from the private key stored in KMS.
+    /// Uncompressed 65-byte public key derived from the private key stored in KMS.
     ///
     /// The key is eagerly decoded during the account instantiation and is used for signature
     /// verification during transaction signing.
@@ -37,7 +37,7 @@ pub struct EvmAccount<'a> {
 impl<'a> EvmAccount<'a> {
     fn decode_public_key(public_key_blob: &[u8]) -> Result<PublicKey, Error> {
         // Nested closures to have only one error mapping routine
-        let decoded_uncompressed_public_key = asn1::parse(public_key_blob, |parser| {
+        asn1::parse(public_key_blob, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 parser.read_element::<Sequence>()?.parse(|parser| {
                     // Check if the public key is of the expected type
@@ -52,7 +52,7 @@ impl<'a> EvmAccount<'a> {
                     }
                     Ok(())
                 })?;
-                parser.read_element::<BitString>()
+                parser.read_element::<BitString>().map(|bs| bs.as_bytes())
             })
         })
         .map_err(|err| {
@@ -61,28 +61,24 @@ impl<'a> EvmAccount<'a> {
                 format!("Failed to parse public key: {err}"),
             )
         })?
-        .as_bytes();
-        // Public key is 65-bytes long, with the first 0x04 byte indicating the EC prefix
-        decoded_uncompressed_public_key[1..]
-            .try_into()
-            .map_err(|_| {
-                // This will never happen for secp256k1 public keys
-                Error::new(
-                    ErrorKind::InvalidData,
-                    "Invalid public key format: This was not supposed to happen!",
-                )
-            })
+        .try_into()
+        .map_err(|err| {
+            // This will never happen since we verified OIDs
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Invalid public key format: {err}"),
+            )
+        })
     }
 
     /// Axiomatic constructor for `EvmAccount` which ties to the provided `KmsKey` instance.
     ///
     /// The constructor eagerly decodes the uncompressed public key from the KMS key, strips the
     /// `0x04` uncompressed elliptic curve prefix and stores it in the `public_key` field.
-    pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<EvmAccount<'a>, Error> {
-        let public_key_der = kms_key.get_public_key().await?;
-        let public_key = Self::decode_public_key(&public_key_der)?;
-
-        Ok(EvmAccount {
+    pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<Self, Error> {
+        let encoded_public_key = kms_key.get_public_key().await?;
+        let public_key = Self::decode_public_key(&encoded_public_key)?;
+        Ok(Self {
             public_key,
             kms_key,
         })
@@ -107,7 +103,6 @@ impl<'a> EvmAccount<'a> {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 let r = parser.read_element::<BigInt>()?;
                 let s = parser.read_element::<BigInt>()?;
-
                 Ok((r, s))
             })
         })
@@ -140,12 +135,11 @@ impl<'a> EvmAccount<'a> {
                 // Safety: Not going to panic as the allowed values for v are 0 and 1, which correspond to the recovery ID.
                 RecoveryId::try_from(v).expect("Invalid recovery ID value"),
             )?;
-            // Uncompressed public key is 65 bytes long, beginning with 0x04 to indicate it is uncompressed
             let pub_key_uncompressed_bytes = secp_context
                 .recover_ecdsa(&message, &signature)?
                 .serialize_uncompressed();
             // Drop the 0x04 uncompressed EC prefix
-            if pub_key_uncompressed_bytes[1..] == *public_key {
+            if pub_key_uncompressed_bytes == public_key {
                 return Ok(v as u32);
             }
         }
@@ -200,11 +194,11 @@ mod unit_tests {
     ];
 
     const TEST_PUBLIC_KEY: [u8; UNCOMPRESSED_PUBLIC_KEY_LENGTH] = [
-        0xf9, 0x52, 0xb9, 0x6e, 0xb7, 0xa7, 0x84, 0x5a, 0xda, 0xbe, 0x93, 0x4b, 0xe3, 0x43, 0x8d,
-        0x92, 0xe9, 0x97, 0x64, 0x78, 0x56, 0xdb, 0xc4, 0x89, 0x7c, 0x66, 0x1d, 0x2e, 0x8f, 0x39,
-        0xbe, 0x7a, 0x27, 0x83, 0x23, 0x47, 0x42, 0xd4, 0x11, 0xb3, 0xc9, 0xe4, 0x55, 0x4d, 0xb4,
-        0xc8, 0x66, 0x2a, 0x54, 0x71, 0x60, 0xf7, 0xee, 0x30, 0xd0, 0xaa, 0x68, 0x00, 0x88, 0xe1,
-        0xa1, 0xdd, 0x80, 0xc0,
+        0x04, 0xf9, 0x52, 0xb9, 0x6e, 0xb7, 0xa7, 0x84, 0x5a, 0xda, 0xbe, 0x93, 0x4b, 0xe3, 0x43,
+        0x8d, 0x92, 0xe9, 0x97, 0x64, 0x78, 0x56, 0xdb, 0xc4, 0x89, 0x7c, 0x66, 0x1d, 0x2e, 0x8f,
+        0x39, 0xbe, 0x7a, 0x27, 0x83, 0x23, 0x47, 0x42, 0xd4, 0x11, 0xb3, 0xc9, 0xe4, 0x55, 0x4d,
+        0xb4, 0xc8, 0x66, 0x2a, 0x54, 0x71, 0x60, 0xf7, 0xee, 0x30, 0xd0, 0xaa, 0x68, 0x00, 0x88,
+        0xe1, 0xa1, 0xdd, 0x80, 0xc0,
     ];
 
     const TEST_DIGEST: [u8; KECCAK_256_LENGTH] = [
