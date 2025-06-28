@@ -128,22 +128,20 @@ impl<'a> EvmAccount<'a> {
         s: &SignatureComponent,
     ) -> Result<u32, secp256k1::Error> {
         let secp_context = Secp256k1::verification_only();
-        // Compact signature is concatenation of 32-byte r and 32-byte s with no headers
         let compact_signature = [r.as_ref(), s.as_ref()].concat();
+        // TODO: The digest should be of fixed size.
         let message = Message::from_digest_slice(digest)?;
-        // Possible v values are 0 or 1
-        for v in 0..=1 {
+        for v in 0u32..=1 {
             let signature = RecoverableSignature::from_compact(
                 &compact_signature,
                 // Safety: Not going to panic as the allowed values for v are 0 and 1, which correspond to the recovery ID.
-                RecoveryId::try_from(v).expect("Invalid recovery ID value"),
+                RecoveryId::try_from(v as i32).expect("Invalid recovery ID value"),
             )?;
-            let pub_key_uncompressed_bytes = secp_context
+            let uncompressed_pub_key_bytes = secp_context
                 .recover_ecdsa(&message, &signature)?
                 .serialize_uncompressed();
-            // Drop the 0x04 uncompressed EC prefix
-            if pub_key_uncompressed_bytes == public_key {
-                return Ok(v as u32);
+            if uncompressed_pub_key_bytes == public_key {
+                return Ok(v);
             }
         }
         // If we're here, this means that the signature does not match the public key
@@ -154,15 +152,15 @@ impl<'a> EvmAccount<'a> {
         &self,
         digest: &[u8],
     ) -> Result<(u32, SignatureComponent, SignatureComponent), Error> {
-        let signature = self.kms_key.sign(digest).await?;
-        let (r, s) = Self::parse_signature(&signature)?;
-        let v = Self::recover_public_key(&self.public_key, digest, &r, &s).map_err(|error| {
-            Error::new(
-                ErrorKind::InvalidData,
-                format!("Failed to recover public key: {error}"),
-            )
-        })?;
-        Ok((v, r, s))
+        let (r, s) = Self::parse_signature(&self.kms_key.sign(digest).await?)?;
+        Self::recover_public_key(&self.public_key, digest, &r, &s)
+            .map_err(|err| {
+                Error::new(
+                    ErrorKind::InvalidData,
+                    format!("Failed to recover public key: {err}"),
+                )
+            })
+            .map(|v| (v, r, s))
     }
 
     /// Signs the provided transaction with the EVM account's private key.
@@ -176,9 +174,9 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<SignedTransaction<T>, Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
-        let signed_bytes = self.sign_bytes(&digest);
-        let (v, r, s) = signed_bytes.await?;
-        Ok(SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
+        self.sign_bytes(&digest)
+            .await
+            .map(|(v, r, s)| SignedTransaction::new(tx, &tx_encoding, digest, v, r, s))
     }
 }
 
