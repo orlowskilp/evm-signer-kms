@@ -6,7 +6,7 @@ use crate::{
     types::{Keccak256Digest, PublicKey, SIGNATURE_COMPONENT_LENGTH, SignatureComponent},
 };
 use asn1::{BigInt, BitString, ObjectIdentifier, ParseError, ParseErrorKind, Sequence};
-use eip2::wrap_s;
+use eip2::reflect_s;
 use secp256k1::{
     Message, Secp256k1,
     ecdsa::{RecoverableSignature, RecoveryId},
@@ -99,23 +99,26 @@ impl<'a> EvmAccount<'a> {
         signature_der: &[u8],
     ) -> Result<(SignatureComponent, SignatureComponent), Error> {
         // Nested closures to have only one error mapping routine
-        let (r, s) = asn1::parse(signature_der, |parser| {
+        asn1::parse(signature_der, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 let r = parser.read_element::<BigInt>()?;
                 let s = parser.read_element::<BigInt>()?;
-                Ok((r, s))
+                Ok((r.as_bytes(), s.as_bytes()))
             })
         })
-        .map_err(|error: ParseError| {
+        .map_err(|err: ParseError| {
             Error::new(
                 ErrorKind::InvalidData,
-                format!("Failed to parse signature: {error}"),
+                format!("Failed to parse signature: {err}"),
             )
-        })?;
-        // Remove the leading sign indicator zero byte if present
-        let r = Self::fit_signature_component(r.as_bytes());
-        let s = wrap_s(Self::fit_signature_component(s.as_bytes()));
-        Ok((r, s))
+        })
+        .map(|(r, s)| {
+            // Remove the leading sign indicator zero byte if present and reflect s around the y-axis
+            (
+                Self::fit_signature_component(r),
+                reflect_s(Self::fit_signature_component(s)),
+            )
+        })
     }
 
     fn recover_public_key(

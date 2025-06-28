@@ -11,7 +11,7 @@ const SECP_256K1_N: U256 = U256([
 ///
 /// See [`EIP-2`](https://eips.ethereum.org/EIPS/eip-2) for details. Moved to separate module to
 /// keep Ethereum specific dependencies in one place.
-pub fn wrap_s(component: SignatureComponent) -> SignatureComponent {
+pub fn reflect_s(component: SignatureComponent) -> SignatureComponent {
     let mut s_u256 = U256::from_be_bytes(component);
 
     // TODO: Remove after sufficient testing and monitoring
@@ -33,7 +33,7 @@ mod unit_tests {
         let input = SignatureComponent::try_from(SECP_256K1_N.to_be_bytes()).unwrap();
 
         let left = [0x0; 32];
-        let right = wrap_s(input);
+        let right = reflect_s(input);
 
         assert_eq!(left, right);
     }
@@ -43,7 +43,7 @@ mod unit_tests {
     fn test_wrap_s_max_exceeded() {
         let input = SignatureComponent::try_from((SECP_256K1_N + 1).to_be_bytes()).unwrap();
 
-        wrap_s(input);
+        reflect_s(input);
     }
 
     #[test]
@@ -52,7 +52,7 @@ mod unit_tests {
 
         // The byte order is reversed
         let left = U256([0x01, 0x00]).to_be_bytes();
-        let right = wrap_s(input);
+        let right = reflect_s(input);
 
         assert_eq!(left, right);
     }
@@ -63,7 +63,7 @@ mod unit_tests {
 
         // The byte order is reversed
         let left = U256([0x01, 0x00]).to_be_bytes();
-        let right = wrap_s(input);
+        let right = reflect_s(input);
 
         assert_eq!(left, right);
     }
