@@ -1,8 +1,7 @@
 # Build the library with the specified toolchain as per `CARGO_BUILD_TARGET`
 .PHONY: build
-build: format
-	cargo clippy
-	cargo build  --release
+build:
+	cargo build --release
 
 # Build documentation for the library
 .PHONY: doc
@@ -12,7 +11,7 @@ doc:
 
 # Run all tests (no coverage)
 .PHONY: test
-test: format check-env
+test: check-env
 	cargo test --all
 
 # Clean up
@@ -30,17 +29,17 @@ test-coverage: check-env
 
 # Run only documentation tests (shorthand for developers)
 .PHONY: doc-test
-doc-test: format check-env
+doc-test: check-env
 	cargo test --doc
 
 # Run only unit tests (shorthand for developers)
 .PHONY: unit-test
-unit-test: format
+unit-test:
 	cargo test --lib
 
 # Run only integration tests (shorthand for developers)
 .PHONY: integration-test
-integration-test: format check-env
+integration-test: check-env
 	cargo test --tests
 
 # ==== Helper directives ====

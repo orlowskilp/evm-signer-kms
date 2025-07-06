@@ -153,5 +153,3 @@ If the tests pass, you're all set!
 ## What's needed
 
 - More more and better tests
-- Derivation paths support
-- ARM `aarch64` support

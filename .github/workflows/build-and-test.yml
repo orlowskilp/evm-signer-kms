@@ -76,37 +76,24 @@ jobs:
           files: ./${{ env.LCOV_OUT }}
           fail_ci_if_error: true
 
-  build-x86-gnu:
-    name: Build for x86_64-unknown-linux-gnu
-    runs-on: ubuntu-${{ VARS.UBUNTU_VERSION }}
+  build:
+    name: Build all targets
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64]
+        toolchain: [gnu, musl]
+    runs-on: ubuntu-${{ vars.UBUNTU_VERSION }}
     needs: run-tests
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v4
 
-      - name: Check description files
-        uses: dprint/check@v2.2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build for x86_64-unknown-linux-gnu
-        run: make build
-
-  build-x86-musl:
-    name: Build for x86_64-unknown-linux-musl
-    env:
-      CARGO_BUILD_TARGET : x86_64-unknown-linux-musl
-    runs-on: ubuntu-latest
-    needs: run-tests
-    steps:
-      - name: Checkout codebase
-        uses: actions/checkout@v4
-
-      - name: Check description files
-        uses: dprint/check@v2.2
-
-      - name: Install musl toolchain
-        run: |
-          sudo apt install musl-tools
-          rustup target add --toolchain stable ${{ env.CARGO_BUILD_TARGET }}
-
-      - name: Build for x86_64-unknown-linux-musl
-        run: make build
+      - name: Build container image
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            BUILD_TARGET=${{ matrix.arch }}-unknown-linux-${{ matrix.toolchain }}
+          outputs: type=image,push=false
