@@ -42,15 +42,26 @@ impl<'a> EvmAccount<'a> {
             parser.read_element::<Sequence>()?.parse(|parser| {
                 parser.read_element::<Sequence>()?.parse(|parser| {
                     // Check if the public key is of the expected type
-                    let oid = parser.read_element::<ObjectIdentifier>()?;
-                    if oid.to_string() != ASN1_EC_PUBLIC_KEY_OID {
+                    let oid = parser.read_element::<ObjectIdentifier>()?.to_string();
+                    if oid != ASN1_EC_PUBLIC_KEY_OID {
+                        tracing::error!(
+                            "Invalid public key OID: expected {}, got {}",
+                            ASN1_EC_PUBLIC_KEY_OID,
+                            oid
+                        );
                         return Err(ParseError::new(ParseErrorKind::InvalidValue));
                     }
                     // Check if the public key is of the expected curve type
-                    let curve_oid = parser.read_element::<ObjectIdentifier>()?;
-                    if curve_oid.to_string() != ASN1_EC_SECP256K1_PK_TYPE_OID {
+                    let curve_oid = parser.read_element::<ObjectIdentifier>()?.to_string();
+                    if curve_oid != ASN1_EC_SECP256K1_PK_TYPE_OID {
+                        tracing::error!(
+                            "Invalid EC curve public key OID: expected {}, got {}",
+                            ASN1_EC_SECP256K1_PK_TYPE_OID,
+                            curve_oid
+                        );
                         return Err(ParseError::new(ParseErrorKind::InvalidValue));
                     }
+                    tracing::debug!("Successfully validated secp256k1 public key OID");
                     Ok(())
                 })?;
                 parser
@@ -60,6 +71,7 @@ impl<'a> EvmAccount<'a> {
             })
         })
         .map_err(|err| {
+            tracing::error!("Failed to parse public key: {err}");
             Error::new(
                 ErrorKind::InvalidData,
                 format!("Failed to parse public key: {err}"),
@@ -69,11 +81,12 @@ impl<'a> EvmAccount<'a> {
 
     /// Axiomatic constructor for `EvmAccount` which ties to the provided `KmsKey` instance.
     ///
-    /// The constructor eagerly decodes the uncompressed public key from the KMS key, strips the
-    /// `0x04` uncompressed elliptic curve prefix and stores it in the `public_key` field.
+    /// The constructor eagerly decodes the uncompressed public key from the KMS key i.e. 65-byte
+    /// public key prefixed with `0x04`.
     pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<Self, Error> {
         let encoded_public_key = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&encoded_public_key)?;
+        tracing::info!("Successfully parsed secp256k1 public key");
         Ok(Self {
             public_key,
             kms_key,
@@ -170,9 +183,13 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<SignedTransaction<T>, Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
-        self.sign_bytes(digest)
-            .await
-            .map(|(r, s, v)| SignedTransaction::new(tx, &tx_encoding, digest, r, s, v))
+        self.sign_bytes(digest).await.map(|(r, s, v)| {
+            tracing::debug!(
+                "Successfully signed transaction with digest: 0x{}",
+                hex::encode(digest)
+            );
+            SignedTransaction::new(tx, &tx_encoding, digest, r, s, v)
+        })
     }
 }
 
