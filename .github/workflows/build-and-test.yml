@@ -23,7 +23,7 @@ permissions:
 jobs:
   lint:
     name: Run checks on formatting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ vars.UBUNTU_VERSION }}
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
   run-tests:
     name: Execute tests and measure coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ vars.UBUNTU_VERSION }}
     needs: lint
     env:
       LCOV_OUT: test-coverage.lcov
@@ -78,7 +78,7 @@ jobs:
 
   build-x86-gnu:
     name: Build for x86_64-unknown-linux-gnu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ VARS.UBUNTU_VERSION }}
     needs: run-tests
     steps:
       - name: Checkout codebase
