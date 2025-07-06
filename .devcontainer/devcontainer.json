@@ -36,7 +36,8 @@
         "ms-vscode.makefile-tools",
         "redhat.vscode-yaml",
         "AmazonWebServices.aws-toolkit-vscode",
-        "docker.docker"
+        "docker.docker",
+        "Codecov.codecov"
       ]
     }
   },
