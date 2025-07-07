@@ -1,6 +1,4 @@
-use super::{
-    AccountAddress, Transaction, deserialize_address_string_option, deserialize_hex_data_string,
-};
+use super::{AccountAddress, Transaction, deserialize_hex_data_string};
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +17,6 @@ pub struct LegacyTransaction {
     /// The maximum amount of gas that can be used by the transaction.
     pub gas_limit: u128,
     /// The address of the recipient of the transaction or `None` for smart contract deployment.
-    #[serde(deserialize_with = "deserialize_address_string_option")]
     pub to: Option<AccountAddress>,
     /// The amount of wei to transfer to the recipient.
     pub value: u128,

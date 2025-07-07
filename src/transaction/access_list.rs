@@ -1,6 +1,4 @@
-use crate::transaction::ADDRESS_LENGTH;
-
-use super::{AccountAddress, hex_data_string_to_bytes, validate_address_checksum};
+use super::{AccountAddress, hex_data_string_to_bytes};
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize, de};
 
@@ -12,7 +10,6 @@ type StorageKey = [u8; STORAGE_KEY_LEN];
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct Access {
     /// Address of the account accessed by the transaction.
-    #[serde(deserialize_with = "deserialize_address_string")]
     pub address: AccountAddress,
     /// List of storage keys accessed by the transaction.
     #[serde(deserialize_with = "deserialize_storage_keys_string_list")]
@@ -30,22 +27,6 @@ impl Encodable for Access {
         s.finalize_unbounded_list();
         s.finalize_unbounded_list()
     }
-}
-
-fn deserialize_address_string<'de, D>(deserializer: D) -> Result<AccountAddress, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let address_string = String::deserialize(deserializer)?;
-    if !validate_address_checksum(&address_string) {
-        return Err(de::Error::custom("Invalid address checksum"));
-    }
-    hex_data_string_to_bytes(&address_string)
-        .map_err(|err| de::Error::custom(format!("Failed to deserialize address: {err}")))?
-        // Checks whether address is of proper length
-        .try_into()
-        .map(|fb: [u8; ADDRESS_LENGTH]| AccountAddress::from(fb))
-        .map_err(|v: Vec<_>| de::Error::custom(format!("Invalid address length: {}", v.len())))
 }
 
 fn deserialize_storage_keys_string_list<'de, D>(

@@ -104,6 +104,7 @@ mod tests {
     ];
     const TEST_ADDR_STR_1: &str = "0xa9d89186caa663c8ef0352fd1db3596280625573";
     const TEST_ADDR_STR_2: &str = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
+    const TEST_ADDR_STR_3: &str = "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359";
 
     #[test]
     fn test_serialize_address_ok() {
@@ -167,5 +168,62 @@ mod tests {
     fn test_deserialize_address_fail_invalid_checksum() {
         serde_plain::from_str::<AccountAddress>("0xA9d89186caa663c8ef0352fd1db3596280625573")
             .unwrap();
+    }
+
+    #[test]
+    fn validate_recipient_address_test_1_succeed() {
+        let input = TEST_ADDR_STR_1;
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_2_succeed() {
+        let input = TEST_ADDR_STR_2;
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_3_succeed() {
+        let input = TEST_ADDR_STR_3;
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_1_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_1.to_ascii_lowercase();
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_2_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_2.to_ascii_lowercase();
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    fn validate_recipient_address_test_3_no_checksum_succeed() {
+        let input = TEST_ADDR_STR_3.to_ascii_lowercase();
+        assert!(validate_address_checksum(&input));
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn validate_recipient_address_test_1_fail() {
+        let input = "0xA9d89186caA663C8Ef0352Fd1Db3596280625573";
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn validate_recipient_address_test_2_fail() {
+        let input = "0x5aAeb6053F3E94c9b9A09F33669435E7Ef1BeAed";
+        assert!(validate_address_checksum(input));
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed")]
+    fn validate_recipient_address_test_3_fail() {
+        let input = "0xfb6916095CA1df60bB79Ce92cE3Ea74c37c5d359";
+        assert!(validate_address_checksum(input));
     }
 }
