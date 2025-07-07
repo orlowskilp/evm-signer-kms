@@ -4,6 +4,7 @@ mod access_list_transaction {
 
         use evm_signer_kms::transaction::{
             access_list::Access, access_list_transaction::AccessListTransaction,
+            address::AccountAddress,
         };
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
@@ -21,7 +22,7 @@ mod access_list_transaction {
                 nonce: 5,
                 gas_price: 100_000_000_000,
                 gas_limit: 21_000,
-                to: Some(TEST_TO_ADDRESS_BYTES),
+                to: Some(AccountAddress::from(TEST_TO_ADDRESS_BYTES)),
                 value: 10_000_000_000_000_000,
                 data: vec![],
                 access_list: vec![],
@@ -42,15 +43,15 @@ mod access_list_transaction {
                 nonce: 5,
                 gas_price: 100_000_000_000,
                 gas_limit: 21_000,
-                to: Some(TEST_TO_ADDRESS_BYTES),
+                to: Some(AccountAddress::from(TEST_TO_ADDRESS_BYTES)),
                 value: 10_000_000_000_000_000,
                 data: vec![],
                 access_list: vec![
                     Access {
-                        address: [
+                        address: AccountAddress::from([
                             0xde, 0x0b, 0x29, 0x56, 0x69, 0xa9, 0xfd, 0x93, 0xd5, 0xf2, 0x8d, 0x9e,
                             0xc8, 0x5e, 0x40, 0xf4, 0xcb, 0x69, 0x7b, 0xae,
-                        ],
+                        ]),
                         storage_keys: vec![
                             [
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -65,10 +66,10 @@ mod access_list_transaction {
                         ],
                     },
                     Access {
-                        address: [
+                        address: AccountAddress::from([
                             0xbb, 0x9b, 0xc2, 0x44, 0xd7, 0x98, 0x12, 0x3f, 0xde, 0x78, 0x3f, 0xcc,
                             0x1c, 0x72, 0xd3, 0xbb, 0x8c, 0x18, 0x94, 0x13,
-                        ],
+                        ]),
                         storage_keys: vec![],
                     },
                 ],
@@ -94,10 +95,10 @@ mod access_list_transaction {
                 data: vec![],
                 access_list: vec![
                     Access {
-                        address: [
+                        address: AccountAddress::from([
                             0xde, 0x0b, 0x29, 0x56, 0x69, 0xa9, 0xfd, 0x93, 0xd5, 0xf2, 0x8d, 0x9e,
                             0xc8, 0x5e, 0x40, 0xf4, 0xcb, 0x69, 0x7b, 0xae,
-                        ],
+                        ]),
                         storage_keys: vec![
                             [
                                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -112,10 +113,10 @@ mod access_list_transaction {
                         ],
                     },
                     Access {
-                        address: [
+                        address: AccountAddress::from([
                             0xbb, 0x9b, 0xc2, 0x44, 0xd7, 0x98, 0x12, 0x3f, 0xde, 0x78, 0x3f, 0xcc,
                             0x1c, 0x72, 0xd3, 0xbb, 0x8c, 0x18, 0x94, 0x13,
-                        ],
+                        ]),
                         storage_keys: vec![],
                     },
                 ],

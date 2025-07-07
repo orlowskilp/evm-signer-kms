@@ -20,8 +20,9 @@
 //!     key::aws_kms::AwsKmsKey,
 //!     account::EvmAccount,
 //!     transaction::{
+//!         address::AccountAddress,
 //!         free_market_transaction::FreeMarketTransaction,
-//!         AccountAddress, SignedTransaction, Transaction
+//!         SignedTransaction, Transaction
 //!     }};
 //! use std::{env, io::{Error, ErrorKind, Result}};
 //!

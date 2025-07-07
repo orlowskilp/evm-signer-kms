@@ -74,7 +74,7 @@ impl Encodable for AccessListTransaction {
 mod unit_tests {
     use super::*;
 
-    const TEST_ADDRESS: AccountAddress = [
+    const TEST_ADDRESS: [u8; 20] = [
         0x70, 0xad, 0x75, 0x4f, 0xf6, 0x70, 0x07, 0x74, 0x11, 0xdf, 0x59, 0x8f, 0xcf, 0xfd, 0x61,
         0xc4, 0x82, 0x99, 0xf1, 0x2f,
     ];
@@ -95,14 +95,14 @@ mod unit_tests {
             nonce: 5,
             gas_price: 100_000_000_000,
             gas_limit: 21_000,
-            to: Some(TEST_ADDRESS),
+            to: Some(AccountAddress::from(TEST_ADDRESS)),
             value: 10_000_000_000_000_000,
             data: vec![],
             access_list: vec![Access {
-                address: [
+                address: AccountAddress::from([
                     0xbb, 0x9b, 0xc2, 0x44, 0xd7, 0x98, 0x12, 0x3f, 0xde, 0x78, 0x3f, 0xcc, 0x1c,
                     0x72, 0xd3, 0xbb, 0x8c, 0x18, 0x94, 0x13,
-                ],
+                ]),
                 storage_keys: vec![],
             }],
         }

@@ -61,7 +61,7 @@ impl Encodable for LegacyTransaction {
 mod unit_tests {
     use super::*;
 
-    const TEST_ADDRESS: AccountAddress = [
+    const TEST_ADDRESS: [u8; 20] = [
         0x70, 0xad, 0x75, 0x4f, 0xf6, 0x70, 0x07, 0x74, 0x11, 0xdf, 0x59, 0x8f, 0xcf, 0xfd, 0x61,
         0xc4, 0x82, 0x99, 0xf1, 0x2f,
     ];
@@ -79,7 +79,7 @@ mod unit_tests {
             nonce: 5,
             gas_price: 100_000_000_000,
             gas_limit: 21_000,
-            to: Some(TEST_ADDRESS),
+            to: Some(AccountAddress::from(TEST_ADDRESS)),
             value: 10_000_000_000_000_000,
             data: vec![],
         }

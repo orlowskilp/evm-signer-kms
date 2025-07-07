@@ -5,7 +5,7 @@ use std::io::{Error as IoError, ErrorKind};
 
 /// EVM address abstraction.
 #[derive(Debug, PartialEq)]
-pub(super) struct AccountAddress {
+pub struct AccountAddress {
     bytes: [u8; ADDRESS_LENGTH],
 }
 
@@ -39,6 +39,13 @@ impl<'de> Deserialize<'de> for AccountAddress {
                 ))
             })
             .map(|fb: [u8; ADDRESS_LENGTH]| AccountAddress::from(fb))
+    }
+}
+
+impl AccountAddress {
+    /// Returns the address as a byte slice.
+    pub fn as_slice(&self) -> &[u8] {
+        &self.bytes
     }
 }
 

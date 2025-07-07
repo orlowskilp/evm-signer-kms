@@ -1,4 +1,7 @@
-use crate::types::{Keccak256Digest, SignatureComponent};
+use crate::{
+    transaction::address::AccountAddress,
+    types::{Keccak256Digest, SignatureComponent},
+};
 use access_list::Access;
 use hex;
 use rlp::{Encodable, RlpStream};
@@ -19,7 +22,7 @@ pub mod access_list;
 /// Implementation of [`EIP-2930`](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transaction.
 pub mod access_list_transaction;
 /// Account address logic and serialization.
-mod address;
+pub mod address;
 /// Implementation of [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transaction.
 pub mod free_market_transaction;
 /// Implementation of the original transaction format.
@@ -32,9 +35,6 @@ const ADDRESS_LENGTH: usize = 20;
 const MAX_TX_TYPE_ID: u8 = 0x7f;
 // Lowest parity value for legacy transactions (see EIP-2).
 const LEGACY_TX_MIN_PARITY: u32 = 27;
-
-/// Type alias for convenience.
-pub type AccountAddress = [u8; ADDRESS_LENGTH];
 
 /// Trait for all transaction types.
 ///
@@ -207,7 +207,7 @@ where
     address_bytes
         // Checks whether address is of proper length
         .try_into()
-        .map(Some)
+        .map(|fb: [u8; ADDRESS_LENGTH]| Some(AccountAddress::from(fb)))
         .map_err(|_| de::Error::custom("Invalid address length"))
 }
 
@@ -219,7 +219,7 @@ mod unit_tests {
     const TEST_ADDR_STR_2: &str = "0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed";
     const TEST_ADDR_STR_3: &str = "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359";
 
-    const TEST_ADDR_BYTES: AccountAddress = [
+    const TEST_ADDR_BYTES: [u8; ADDRESS_LENGTH] = [
         0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3, 0x59,
         0x62, 0x80, 0x62, 0x55, 0x73,
     ];

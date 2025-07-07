@@ -1,3 +1,5 @@
+use crate::transaction::ADDRESS_LENGTH;
+
 use super::{AccountAddress, hex_data_string_to_bytes, validate_address_checksum};
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Deserializer, Serialize, de};
@@ -42,6 +44,7 @@ where
         .map_err(|err| de::Error::custom(format!("Failed to deserialize address: {err}")))?
         // Checks whether address is of proper length
         .try_into()
+        .map(|fb: [u8; ADDRESS_LENGTH]| AccountAddress::from(fb))
         .map_err(|v: Vec<_>| de::Error::custom(format!("Invalid address length: {}", v.len())))
 }
 
