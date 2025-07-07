@@ -1,4 +1,4 @@
-use super::{AccountAddress, Transaction, deserialize_hex_data_string};
+use super::{AccountAddress, Transaction};
 use rlp::{Encodable, RlpStream};
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +20,7 @@ pub struct LegacyTransaction {
     pub to: Option<AccountAddress>,
     /// The amount of wei to transfer to the recipient.
     pub value: u128,
-    #[serde(deserialize_with = "deserialize_hex_data_string")]
+    #[serde(deserialize_with = "super::deserialize")]
     /// Transaction data to be sent with the transaction (see
     /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
     pub data: Vec<u8>,

@@ -134,9 +134,7 @@ fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
         .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {err}")))
 }
 
-fn deserialize_hex_data_string<'de, D: Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Vec<u8>, D::Error> {
+fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
     hex::deserialize(
         String::deserialize(deserializer)?
             .trim_start_matches(HEX_PREFIX)
