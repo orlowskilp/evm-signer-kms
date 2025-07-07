@@ -2,7 +2,11 @@ use crate::types::{Keccak256Digest, SignatureComponent};
 use access_list::Access;
 use hex;
 use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Deserializer, Serialize, de, ser};
+use serde::{
+    Deserialize, Deserializer, Serialize,
+    de::{self, DeserializeOwned, IntoDeserializer},
+    ser::Serializer,
+};
 use sha3::{Digest, Keccak256};
 use std::{
     fmt::Debug,
@@ -42,7 +46,7 @@ pub trait Transaction:
     // For debugging
     Debug +
     // To satisfy ServiceFn bound required by Lambda runtime
-    de::DeserializeOwned + ser::Serialize
+    DeserializeOwned + Serialize
 {
     fn encode(&self) -> Vec<u8>;
 }
@@ -118,14 +122,8 @@ where
     }
 }
 
-impl<T> Serialize for SignedTransaction<T>
-where
-    T: Transaction,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
+impl<T: Transaction> Serialize for SignedTransaction<T> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         format!("{}{}", HEX_PREFIX, hex::encode(self.encode())).serialize(serializer)
     }
 }
@@ -135,12 +133,15 @@ fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
         .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {err}")))
 }
 
-fn deserialize_hex_data_string<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    hex_data_string_to_bytes(&String::deserialize(deserializer)?)
-        .map_err(|err| de::Error::custom(format!("Failed to deserialize hex data: {err}")))
+fn deserialize_hex_data_string<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<u8>, D::Error> {
+    hex::deserialize(
+        String::deserialize(deserializer)?
+            .trim_start_matches(HEX_PREFIX)
+            .to_string()
+            .into_deserializer(),
+    )
 }
 
 fn compute_address_checksum(address: &str) -> Result<String, Error> {
