@@ -1,4 +1,3 @@
-use aws_config::SdkConfig;
 use aws_sdk_kms::{
     Client,
     primitives::Blob,
@@ -36,7 +35,7 @@ use std::io::{Error, ErrorKind, Result};
 /// }
 /// ```
 pub struct AwsKmsKey<'a> {
-    config: SdkConfig,
+    kms_client: Client,
     kms_key_id: &'a str,
 }
 
@@ -59,10 +58,17 @@ impl<'a> AwsKmsKey<'a> {
     /// ```
     ///
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
-    /// The method relies on the AWS SDK to do the validation.
+    /// The method relies on the AWS SDK to do the validation. The public key OID is later verified
+    /// during key decoding.
     pub async fn new(kms_key_id: &'a str) -> Self {
         let config = aws_config::from_env().load().await;
-        Self { config, kms_key_id }
+        tracing::info!("AWS credentials and region loaded from environment successfully");
+        let kms_client = Client::new(&config);
+        tracing::info!("AWS KMS client created successfully");
+        Self {
+            kms_client,
+            kms_key_id,
+        }
     }
 
     /// Retrieves the public key associated with the private key.
@@ -76,23 +82,21 @@ impl<'a> AwsKmsKey<'a> {
     /// 3056301006072a8648ce3d020106052b8104000a034200043b5ca9876d1c4ca39838fd8ef1bc4b138a1edf73ad8e29b9f6338f39e4a6f64c7d83df86b01deb689c6d14536413fce6752f4df7240d7180b53f27f5611d06a3
     /// ```
     pub async fn get_public_key(&self) -> Result<Vec<u8>> {
-        Client::new(&self.config)
+        self.kms_client
             .get_public_key()
             .key_id(self.kms_key_id)
             .send()
             .await
             .map_err(|err| {
-                Error::new(
-                    ErrorKind::NotFound,
-                    format!("Error getting public key: {err:?}"),
-                )
+                let msg = format!("Error getting public key: {err:?}");
+                tracing::error!(msg);
+                Error::new(ErrorKind::NotFound, msg)
             })?
             .public_key()
             .ok_or_else(|| {
-                Error::new(
-                    ErrorKind::InvalidData,
-                    "Invalid response. No public key found",
-                )
+                let msg = "Invalid response. No public key found";
+                tracing::error!(msg);
+                Error::new(ErrorKind::InvalidData, msg)
             })
             .map(|pk| pk.to_owned().into_inner())
     }
@@ -103,7 +107,7 @@ impl<'a> AwsKmsKey<'a> {
     ///
     /// Returns a DER encoded signature. Note that the signature is different every time.
     pub async fn sign(&self, message: &[u8]) -> Result<Vec<u8>> {
-        Client::new(&self.config)
+        self.kms_client
             .sign()
             .key_id(self.kms_key_id)
             .signing_algorithm(SigningAlgorithmSpec::EcdsaSha256)
@@ -112,17 +116,15 @@ impl<'a> AwsKmsKey<'a> {
             .send()
             .await
             .map_err(|err| {
-                Error::new(
-                    ErrorKind::PermissionDenied,
-                    format!("Error signing message: {err:?}"),
-                )
+                let msg = format!("Error signing message: {err:?}");
+                tracing::error!(msg);
+                Error::new(ErrorKind::PermissionDenied, msg)
             })?
             .signature()
             .ok_or_else(|| {
-                Error::new(
-                    ErrorKind::InvalidData,
-                    "Invalid response data. Signature not found",
-                )
+                let msg = "Invalid response data. Signature not found";
+                tracing::error!(msg);
+                Error::new(ErrorKind::InvalidData, msg)
             })
             .map(|sig| sig.to_owned().into_inner())
     }
