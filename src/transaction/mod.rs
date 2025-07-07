@@ -18,6 +18,8 @@ use std::{
 pub mod access_list;
 /// Implementation of [`EIP-2930`](https://eips.ethereum.org/EIPS/eip-2930) (type 1) transaction.
 pub mod access_list_transaction;
+/// Account address logic and serialization.
+mod address;
 /// Implementation of [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559) (type 2) transaction.
 pub mod free_market_transaction;
 /// Implementation of the original transaction format.
