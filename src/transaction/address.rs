@@ -1,5 +1,8 @@
 use crate::transaction::{ADDRESS_LENGTH, HEX_PREFIX, HEX_RADIX};
-use serde::{Deserialize, Serialize, Serializer, de::Error as DeError};
+use serde::{
+    Deserialize, Serialize, Serializer,
+    de::{Error as DeError, IntoDeserializer},
+};
 use sha3::{Digest, Keccak256};
 use std::io::{Error as IoError, ErrorKind};
 
@@ -29,16 +32,11 @@ impl<'de> Deserialize<'de> for AccountAddress {
                 "Invalid address checksum: {addr_str}"
             )));
         }
-        hex::decode(addr_str.trim_start_matches(HEX_PREFIX))
-            .map_err(DeError::custom)?
-            .try_into()
-            .map_err(|v: Vec<_>| {
-                DeError::custom(format!(
-                    "Expected 20 bytes for account address, got {}",
-                    v.len()
-                ))
-            })
-            .map(|fb: [u8; ADDRESS_LENGTH]| AccountAddress::from(fb))
+        super::fit_bytes::<[u8; ADDRESS_LENGTH], D>(&super::deserialize(
+            addr_str.into_deserializer(),
+        )?)
+        .map_err(|err| DeError::custom(format!("Expected 20 bytes for account address: {err}")))
+        .map(AccountAddress::from)
     }
 }
 
@@ -83,7 +81,7 @@ fn validate_address_checksum(address: &str) -> bool {
     if address == address.to_ascii_lowercase() {
         return true;
     }
-    // Otherwise strict chgecksum validation is required.
+    // Otherwise strict checksum validation is required.
     match compute_address_checksum(address) {
         Ok(checksum) => checksum == address,
         Err(_) => false,

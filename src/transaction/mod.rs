@@ -7,7 +7,7 @@ use hex;
 use rlp::{Encodable, RlpStream};
 use serde::{
     Deserialize, Deserializer, Serialize,
-    de::{DeserializeOwned, IntoDeserializer},
+    de::{DeserializeOwned, Error as DeError, IntoDeserializer},
     ser::Serializer,
 };
 use std::{
@@ -46,7 +46,7 @@ pub trait Transaction:
     PartialEq +
     // For debugging
     Debug +
-    // To satisfy ServiceFn bound required by Lambda runtime
+    // For deserialization and serialization
     DeserializeOwned + Serialize
 {
     fn encode(&self) -> Vec<u8>;
@@ -72,10 +72,7 @@ where
     pub s: SignatureComponent,
 }
 
-impl<T> SignedTransaction<T>
-where
-    T: Transaction,
-{
+impl<T: Transaction> SignedTransaction<T> {
     /// Creates a new signed transaction.
     ///
     /// The unsigned transaction, transaction digest as well as the signature components are stored
@@ -141,6 +138,17 @@ fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D:
             .to_string()
             .into_deserializer(),
     )
+}
+
+fn fit_bytes<'de, T, D>(bytes: &[u8]) -> Result<T, D::Error>
+where
+    T: TryFrom<Vec<u8>, Error = Vec<u8>>,
+    D: Deserializer<'de>,
+{
+    bytes
+        .to_vec()
+        .try_into()
+        .map_err(|v: Vec<_>| D::Error::custom(format!("Got {} bytes", v.len())))
 }
 
 #[cfg(test)]
