@@ -6,14 +6,16 @@ use serde::{
 use sha3::{Digest, Keccak256};
 use std::io::{Error as IoError, ErrorKind};
 
+type AccountAddressBytes = [u8; ADDRESS_LENGTH];
+
 /// EVM address abstraction.
 #[derive(Debug, PartialEq)]
 pub struct AccountAddress {
-    bytes: [u8; ADDRESS_LENGTH],
+    bytes: AccountAddressBytes,
 }
 
-impl From<[u8; ADDRESS_LENGTH]> for AccountAddress {
-    fn from(bytes: [u8; ADDRESS_LENGTH]) -> Self {
+impl From<AccountAddressBytes> for AccountAddress {
+    fn from(bytes: AccountAddressBytes) -> Self {
         Self { bytes }
     }
 }
@@ -32,7 +34,7 @@ impl<'de> Deserialize<'de> for AccountAddress {
                 "Invalid address checksum: {addr_str}"
             )));
         }
-        super::fit_bytes::<[u8; ADDRESS_LENGTH], D>(&super::deserialize(
+        super::fit_bytes::<AccountAddressBytes, D>(&super::deserialize(
             addr_str.into_deserializer(),
         )?)
         .map_err(|err| DeError::custom(format!("Expected 20 bytes for account address: {err}")))
@@ -92,11 +94,11 @@ fn validate_address_checksum(address: &str) -> bool {
 mod tests {
     use super::*;
 
-    const TEST_ADDRESS_BYTES_1: [u8; ADDRESS_LENGTH] = [
+    const TEST_ADDRESS_BYTES_1: AccountAddressBytes = [
         0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3, 0x59,
         0x62, 0x80, 0x62, 0x55, 0x73,
     ];
-    const TEST_ADDRESS_BYTES_2: [u8; ADDRESS_LENGTH] = [
+    const TEST_ADDRESS_BYTES_2: AccountAddressBytes = [
         0x5a, 0xae, 0xb6, 0x05, 0x3F, 0x3e, 0x94, 0xc9, 0xb9, 0xa0, 0x9f, 0x33, 0x66, 0x94, 0x35,
         0xe7, 0xef, 0x1b, 0xea, 0xed,
     ];
@@ -146,7 +148,7 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Odd number of digits")]
-    fn test_deserialize_address_fail_even_str_len() {
+    fn test_deserialize_address_fail_odd_str_len() {
         serde_plain::from_str::<AccountAddress>(&TEST_ADDR_STR_1[..(2 * ADDRESS_LENGTH - 1)])
             .unwrap();
     }

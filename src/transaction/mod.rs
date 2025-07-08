@@ -10,11 +10,7 @@ use serde::{
     de::{DeserializeOwned, Error as DeError, IntoDeserializer},
     ser::Serializer,
 };
-use std::{
-    fmt::Debug,
-    io::{Error, ErrorKind},
-    string::String,
-};
+use std::{fmt::Debug, string::String};
 
 /// Implementation of access list with necessary encoding and serialization logic.
 pub mod access_list;
@@ -54,10 +50,7 @@ pub trait Transaction:
 
 /// Representation of signed transaction.
 #[derive(Debug, PartialEq)]
-pub struct SignedTransaction<T>
-where
-    T: Transaction,
-{
+pub struct SignedTransaction<T: Transaction> {
     /// Transaction type identifier (see [`EIP-2718`](https://eips.ethereum.org/EIPS/eip-2718)).
     pub tx_type: u8,
     /// Unsigned transaction body.
@@ -126,9 +119,12 @@ impl<T: Transaction> Serialize for SignedTransaction<T> {
     }
 }
 
-fn hex_data_string_to_bytes(hex_data: &str) -> Result<Vec<u8>, Error> {
-    hex::decode(hex_data.trim_start_matches(HEX_PREFIX))
-        .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Invalid hex data: {err}")))
+impl<'de, T: Transaction> Deserialize<'de> for SignedTransaction<T> {
+    fn deserialize<D: Deserializer<'de>>(_deserializer: D) -> Result<Self, D::Error> {
+        unimplemented!(
+            "Deserialization of signed transactions is not implemented. Not needed for now."
+        );
+    }
 }
 
 fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
@@ -140,6 +136,10 @@ fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D:
     )
 }
 
+fn serialize<S: Serializer>(_bytes: &[u8], _serializer: S) -> Result<S::Ok, S::Error> {
+    unimplemented!("Serialization of bytes is not implemented. Not needed for now.");
+}
+
 fn fit_bytes<'de, T, D>(bytes: &[u8]) -> Result<T, D::Error>
 where
     T: TryFrom<Vec<u8>, Error = Vec<u8>>,
@@ -149,26 +149,4 @@ where
         .to_vec()
         .try_into()
         .map_err(|v: Vec<_>| D::Error::custom(format!("Got {} bytes", v.len())))
-}
-
-#[cfg(test)]
-mod unit_tests {
-    use super::*;
-
-    const TEST_ADDR_STR_1: &str = "0xa9d89186cAA663C8Ef0352Fd1Db3596280625573";
-
-    const TEST_ADDR_BYTES: [u8; ADDRESS_LENGTH] = [
-        0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3, 0x59,
-        0x62, 0x80, 0x62, 0x55, 0x73,
-    ];
-
-    #[test]
-    fn evm_address_to_bytes_test() {
-        let input = TEST_ADDR_STR_1;
-        let left = TEST_ADDR_BYTES.to_vec();
-
-        let right = hex_data_string_to_bytes(input).unwrap();
-
-        assert_eq!(left, right);
-    }
 }

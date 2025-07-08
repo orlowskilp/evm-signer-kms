@@ -20,7 +20,7 @@ pub struct LegacyTransaction {
     pub to: Option<AccountAddress>,
     /// The amount of wei to transfer to the recipient.
     pub value: u128,
-    #[serde(deserialize_with = "super::deserialize")]
+    #[serde(with = "super")]
     /// Transaction data to be sent with the transaction (see
     /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
     pub data: Vec<u8>,

@@ -27,7 +27,7 @@ pub struct FreeMarketTransaction {
     pub value: u128,
     /// Transaction data to be sent with the transaction (see
     /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
-    #[serde(deserialize_with = "super::deserialize")]
+    #[serde(with = "super")]
     pub data: Vec<u8>,
     /// List of addresses and storage keys that the transaction plans to access.
     pub access_list: Vec<Access>,
@@ -69,6 +69,8 @@ impl Encodable for FreeMarketTransaction {
 
 #[cfg(test)]
 mod unit_tests {
+    use crate::transaction::access_list::StorageKey;
+
     use super::{Access, AccountAddress, FreeMarketTransaction, Transaction};
 
     const TEST_ADDRESS: [u8; 20] = [
@@ -171,16 +173,16 @@ mod unit_tests {
                         0xc8, 0x5e, 0x40, 0xf4, 0xcb, 0x69, 0x7b, 0xae,
                     ]),
                     storage_keys: vec![
-                        [
+                        StorageKey::from([
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
-                        ],
-                        [
+                        ]),
+                        StorageKey::from([
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07,
-                        ],
+                        ]),
                     ],
                 },
                 Access {

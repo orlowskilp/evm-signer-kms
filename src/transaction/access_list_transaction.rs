@@ -27,7 +27,7 @@ pub struct AccessListTransaction {
     pub value: u128,
     /// Transaction data to be sent with the transaction (see
     /// [this article](https://ethereum.org/en/developers/docs/transactions/#the-data-field)).
-    #[serde(deserialize_with = "super::deserialize")]
+    #[serde(with = "super")]
     pub data: Vec<u8>,
     /// List of addresses and storage keys that the transaction plans to access.
     pub access_list: Vec<Access>,
