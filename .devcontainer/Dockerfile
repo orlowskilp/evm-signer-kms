@@ -16,6 +16,8 @@ RUN pacman -Suy --noconfirm \
     git \
     gcc \
     musl \
+    aarch64-linux-gnu-gcc \
+    musl-aarch64 \
     make \
     jq \
     docker \
