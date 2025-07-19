@@ -62,9 +62,8 @@ fn compute_address_checksum(address: &str) -> Result<String, IoError> {
         HEX_PREFIX.to_string(),
         |mut address_checksum, (nibble, hashed_address_nibble)| {
             address_checksum.push(match nibble {
-                '0'..='9' => nibble,
                 'a'..='f' if hashed_address_nibble > 7 => nibble.to_ascii_uppercase(),
-                'a'..='f' => nibble,
+                'a'..='f' | '0'..='9' => nibble,
                 _ => {
                     return Err(IoError::new(
                         ErrorKind::InvalidData,

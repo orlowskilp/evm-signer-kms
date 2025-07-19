@@ -37,6 +37,7 @@ pub struct EvmAccount<'a> {
 }
 
 impl<'a> EvmAccount<'a> {
+    /// Decodes ASN.1 encoded public key into the uncompressed 65-byte public key.
     fn decode_public_key(public_key_blob: &[u8]) -> Result<PublicKey, Error> {
         asn1::parse(public_key_blob, |parser| {
             parser.read_element::<Sequence>()?.parse(|parser| {
@@ -71,11 +72,9 @@ impl<'a> EvmAccount<'a> {
             })
         })
         .map_err(|err| {
-            tracing::error!("Failed to parse public key: {err}");
-            Error::new(
-                ErrorKind::InvalidData,
-                format!("Failed to parse public key: {err}"),
-            )
+            let msg = format!("Failed to parse public key: {err}");
+            tracing::error!(msg);
+            Error::new(ErrorKind::InvalidData, msg)
         })
     }
 
@@ -93,7 +92,8 @@ impl<'a> EvmAccount<'a> {
         })
     }
 
-    fn fit_signature_component(decoded_data: &[u8]) -> SignatureComponent {
+    /// First signature coordinate into 32-byte array.
+    fn fit_signature_coordinate(decoded_data: &[u8]) -> SignatureComponent {
         // The decoded signature component may be between 31 and 33 bytes long.
         let fitted_data = match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
             // Trim unnecessary sign indicator
@@ -123,8 +123,8 @@ impl<'a> EvmAccount<'a> {
             tracing::debug!("Parsed S: 0x{}", hex::encode(s));
             // Remove the leading sign indicator zero byte if present and reflect s around the y-axis
             (
-                Self::fit_signature_component(r),
-                reflect_s(Self::fit_signature_component(s)),
+                Self::fit_signature_coordinate(r),
+                reflect_s(Self::fit_signature_coordinate(s)),
             )
         })
         .map_err(|err: ParseError| {
