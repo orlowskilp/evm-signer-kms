@@ -1,12 +1,12 @@
 mod free_market_transaction {
     mod integration_tests {
-        use std::fs::File;
-
         use evm_signer_kms::transaction::{
             access_list::{Access, StorageKey},
             address::AccountAddress,
             free_market_transaction::FreeMarketTransaction,
         };
+        use std::fs::File;
+        use tracing_test::traced_test;
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
@@ -14,9 +14,9 @@ mod free_market_transaction {
         ];
 
         #[test]
-        fn deserialize_valid_free_market_tx_01_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_free_market_tx_01_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -29,16 +29,14 @@ mod free_market_transaction {
                 data: vec![],
                 access_list: vec![],
             };
-
             let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
-        fn deserialize_valid_free_market_tx_02_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_free_market_tx_02_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-02.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -51,16 +49,14 @@ mod free_market_transaction {
                 data: vec![171, 205],
                 access_list: vec![],
             };
-
             let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
-        fn deserialize_valid_free_market_tx_03_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_free_market_tx_03_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -79,16 +75,14 @@ mod free_market_transaction {
                     storage_keys: vec![],
                 }],
             };
-
             let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
-        fn deserialize_valid_free_market_tx_04_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_free_market_tx_04_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -127,17 +121,15 @@ mod free_market_transaction {
                     },
                 ],
             };
-
             let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
+        #[traced_test]
         #[ignore = "This may actually not be a valid format for deserialization after all"]
-        fn deserialize_valid_free_market_tx_05_succeed() {
+        fn test_deserialize_valid_free_market_tx_05_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-05.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -176,50 +168,44 @@ mod free_market_transaction {
                     },
                 ],
             };
-
             let right: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_01_fail() {
+        fn test_deserialize_invalid_free_market_tx_01_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-01.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, FreeMarketTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_02_fail() {
+        fn test_deserialize_invalid_free_market_tx_02_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-02.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, FreeMarketTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_03_fail() {
+        fn test_deserialize_invalid_free_market_tx_03_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-03.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, FreeMarketTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_free_market_tx_04_fail() {
+        fn test_deserialize_invalid_free_market_tx_04_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-04.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, FreeMarketTransaction>(tx_file).unwrap();
         }
     }
 }

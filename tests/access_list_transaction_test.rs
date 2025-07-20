@@ -1,12 +1,12 @@
 mod access_list_transaction {
     mod integration_tests {
-        use std::fs::File;
-
         use evm_signer_kms::transaction::{
             access_list::{Access, StorageKey},
             access_list_transaction::AccessListTransaction,
             address::AccountAddress,
         };
+        use std::fs::File;
+        use tracing_test::traced_test;
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
@@ -14,9 +14,9 @@ mod access_list_transaction {
         ];
 
         #[test]
-        fn deserialize_valid_access_list_tx_01_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_access_list_tx_01_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-01.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = AccessListTransaction {
                 chain_id: 421614,
@@ -28,16 +28,14 @@ mod access_list_transaction {
                 data: vec![],
                 access_list: vec![],
             };
-
             let right: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
-        fn deserialize_valid_access_list_tx_02_succeed() {
+        #[traced_test]
+        fn test_deserialize_valid_access_list_tx_02_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = AccessListTransaction {
                 chain_id: 421614,
@@ -75,17 +73,15 @@ mod access_list_transaction {
                     },
                 ],
             };
-
             let right: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
+        #[traced_test]
         #[ignore = "This may actually not be a valid format for deserialization after all"]
-        fn deserialize_valid_access_list_tx_03_succeed() {
+        fn test_deserialize_valid_access_list_tx_03_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-03.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let left = AccessListTransaction {
                 chain_id: 421614,
@@ -123,51 +119,45 @@ mod access_list_transaction {
                     },
                 ],
             };
-
             let right: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
-
             assert_eq!(left, right);
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_access_list_tx_01_fail() {
+        fn test_deserialize_invalid_access_list_tx_01_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-01.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_access_list_tx_02_fail() {
+        fn test_deserialize_invalid_access_list_tx_02_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-02.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[should_panic]
-        fn deserialize_invalid_access_list_tx_03_fail() {
+        fn test_deserialize_invalid_access_list_tx_03_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-03.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
         }
 
         #[test]
+        #[traced_test]
         #[ignore = "Input file corrupted, needs to be fixed"]
         #[should_panic]
-        fn deserialize_invalid_access_list_tx_04_fail() {
+        fn test_deserialize_invalid_access_list_tx_04_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-04.json";
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-
-            let _: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
+            serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
         }
     }
 }
