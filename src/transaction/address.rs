@@ -84,10 +84,9 @@ fn validate_address_checksum(address: &str) -> bool {
         return true;
     }
     // Otherwise strict checksum validation is required.
-    match compute_address_checksum(address) {
-        Ok(checksum) => checksum == address,
-        Err(_) => false,
-    }
+    compute_address_checksum(address)
+        .map(|checksum| checksum == address)
+        .unwrap_or(false)
 }
 
 #[cfg(test)]
