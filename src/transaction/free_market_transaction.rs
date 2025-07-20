@@ -1,13 +1,13 @@
 use crate::transaction::{Access, AccountAddress, Transaction};
 use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 const EIP_1559_TX_TYPE_ID: u8 = 0x02;
 
 /// Represents a free market (i.e. type 2) transaction.
 ///
 /// Type 2 transaction format defined in [`EIP-1559`](https://eips.ethereum.org/EIPS/eip-1559).
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct FreeMarketTransaction {
     /// The maximum amount of gas that can be used by the transaction.

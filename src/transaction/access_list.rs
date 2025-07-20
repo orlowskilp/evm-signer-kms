@@ -1,12 +1,12 @@
 use super::AccountAddress;
 use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Deserializer, Serialize, de::Error};
+use serde::{Deserialize, Deserializer, de::Error};
 
 const STORAGE_KEY_LEN: usize = 32;
 
 type StorageKeyBytes = [u8; STORAGE_KEY_LEN];
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq)]
 pub struct StorageKey {
     bytes: StorageKeyBytes,
 }
@@ -33,7 +33,7 @@ impl StorageKey {
 }
 
 /// Structure of an access i.e. an address and a list of storage keys accessed by a transaction.
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct Access {
     /// Address of the account accessed by the transaction.
     pub address: AccountAddress,

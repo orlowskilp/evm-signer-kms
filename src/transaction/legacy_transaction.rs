@@ -1,12 +1,12 @@
 use super::{AccountAddress, Transaction};
 use rlp::{Encodable, RlpStream};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /// Represents a legacy Ethereum transaction.
 ///
 /// The format of a legacy transaction roughly follows the structure described
 /// [here](https://ethereum.org/en/developers/docs/transactions).
-#[derive(Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LegacyTransaction {
     /// Sequence number of transaction from the account.

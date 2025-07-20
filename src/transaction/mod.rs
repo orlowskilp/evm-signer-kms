@@ -42,8 +42,8 @@ pub trait Transaction:
     PartialEq +
     // For debugging
     Debug +
-    // For deserialization and serialization
-    DeserializeOwned + Serialize
+    // For deserialization
+    DeserializeOwned
 {
     fn encode(&self) -> Vec<u8>;
 }
@@ -134,10 +134,6 @@ fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D:
             .to_string()
             .into_deserializer(),
     )
-}
-
-fn serialize<S: Serializer>(_bytes: &[u8], _serializer: S) -> Result<S::Ok, S::Error> {
-    unimplemented!("Serialization of bytes is not implemented. Not needed for now.");
 }
 
 fn fit_bytes<'de, T, D>(bytes: &[u8]) -> Result<T, D::Error>
