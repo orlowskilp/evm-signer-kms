@@ -84,7 +84,7 @@ mod unit_tests {
     ];
 
     #[test]
-    fn encode_valid_tx_01_succeed() {
+    fn test_encode_valid_tx_01_ok() {
         let left = TEST_ENCODING.to_vec();
         let right = AccessListTransaction {
             chain_id: 421614,
@@ -103,7 +103,6 @@ mod unit_tests {
             }],
         }
         .encode();
-
         assert_eq!(left, right);
     }
 }

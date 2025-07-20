@@ -34,7 +34,7 @@ const LEGACY_TX_MIN_PARITY: u32 = 27;
 /// Trait for all transaction types.
 ///
 /// This trait is used to define the encoding method for all the transaction types.
-/// Provides bounds for RLP encoding, comparisons and serialization.
+/// Provides bounds for RLP encoding, comparisons and deserialization.
 pub trait Transaction:
     // For RLP encoding
     Encodable +
@@ -84,7 +84,6 @@ impl<T: Transaction> SignedTransaction<T> {
             tx_type if tx_type < MAX_TX_TYPE_ID => (tx_type, v),
             _ => (0x0, v + LEGACY_TX_MIN_PARITY),
         };
-
         Self {
             tx_type,
             tx,
@@ -119,6 +118,7 @@ impl<T: Transaction> Serialize for SignedTransaction<T> {
     }
 }
 
+/// Deserializer function for signed transactions, stripping the `0x` prefix from hex strings.
 fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
     hex::deserialize(
         String::deserialize(deserializer)?
@@ -128,6 +128,7 @@ fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D:
     )
 }
 
+/// Fits bytes into sized types.
 fn fit_bytes<'de, T, D>(bytes: &[u8]) -> Result<T, D::Error>
 where
     T: TryFrom<Vec<u8>, Error = Vec<u8>>,

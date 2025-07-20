@@ -108,9 +108,8 @@ mod unit_tests {
     ];
 
     #[test]
-    fn unsigned_tx_encode_no_access_list() {
+    fn test_unsigned_tx_encode_no_access_list_ok() {
         let left = TEST_ENCODING_NO_ACCESS_LIST.to_vec();
-
         let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
@@ -123,14 +122,12 @@ mod unit_tests {
             access_list: vec![],
         }
         .encode();
-
         assert_eq!(left, right);
     }
 
     #[test]
-    fn unsigned_tx_encode_with_access_list_1() {
+    fn test_unsigned_tx_encode_with_access_list_1_ok() {
         let left = TEST_ENCODING_WITH_ACCESS_LIST_1.to_vec();
-
         let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
@@ -149,14 +146,12 @@ mod unit_tests {
             }],
         }
         .encode();
-
         assert_eq!(left, right);
     }
 
     #[test]
-    fn unsigned_tx_encode_with_access_list_2() {
+    fn test_unsigned_tx_encode_with_access_list_2_ok() {
         let left = TEST_ENCODING_WITH_ACCESS_LIST_2.to_vec();
-
         let right = FreeMarketTransaction {
             gas_limit: 21_000,
             max_fee_per_gas: 100_000_000_000,
@@ -195,7 +190,6 @@ mod unit_tests {
             ],
         }
         .encode();
-
         assert_eq!(left, right);
     }
 }

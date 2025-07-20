@@ -70,7 +70,7 @@ mod unit_tests {
     ];
 
     #[test]
-    fn encode_valid_tx_01_succeed() {
+    fn test_encode_valid_tx_01_ok() {
         let left = TEST_ENCODING.to_vec();
         let right = LegacyTransaction {
             nonce: 5,
@@ -81,7 +81,6 @@ mod unit_tests {
             data: vec![],
         }
         .encode();
-
         assert_eq!(left, right);
     }
 }

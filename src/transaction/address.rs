@@ -113,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_address_ok_not_checksumed() {
+    fn test_deserialize_address_not_checksumed_ok() {
         let left = serde_plain::from_str::<AccountAddress>(TEST_ADDR_STR_1)
             .unwrap()
             .bytes;
@@ -122,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn test_deserialize_address_ok_checksumed() {
+    fn test_deserialize_address_checksumed_ok() {
         let left = serde_plain::from_str::<AccountAddress>(TEST_ADDR_STR_2)
             .unwrap()
             .bytes;
@@ -132,27 +132,27 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Expected 20 bytes for account address")]
-    fn test_deserialize_address_fail_too_short() {
+    fn test_deserialize_address_too_short_fail() {
         serde_plain::from_str::<AccountAddress>(&TEST_ADDR_STR_1[..(2 * ADDRESS_LENGTH - 2)])
             .unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Expected 20 bytes for account address")]
-    fn test_deserialize_address_fail_too_long() {
+    fn test_deserialize_address_too_long_fail() {
         serde_plain::from_str::<AccountAddress>(format!("{}{}", TEST_ADDR_STR_1, "00").as_str())
             .unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Odd number of digits")]
-    fn test_deserialize_address_fail_odd_str_len() {
+    fn test_deserialize_address_odd_str_len_fail() {
         serde_plain::from_str::<AccountAddress>(&TEST_ADDR_STR_1[..(2 * ADDRESS_LENGTH - 1)])
             .unwrap();
     }
 
     #[test]
-    fn test_deserialize_address_fail_no_prefix() {
+    fn test_deserialize_address_no_prefix_fail() {
         let left =
             serde_plain::from_str::<AccountAddress>("a9d89186caa663c8ef0352fd1db3596280625573")
                 .unwrap()
@@ -163,43 +163,43 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Invalid address checksum")]
-    fn test_deserialize_address_fail_invalid_checksum() {
+    fn test_deserialize_address_invalid_checksum_fail() {
         serde_plain::from_str::<AccountAddress>("0xA9d89186caa663c8ef0352fd1db3596280625573")
             .unwrap();
     }
 
     #[test]
-    fn validate_recipient_address_test_1_succeed() {
+    fn validate_recipient_address_test_1_ok() {
         let input = TEST_ADDR_STR_1;
         assert!(validate_address_checksum(input));
     }
 
     #[test]
-    fn validate_recipient_address_test_2_succeed() {
+    fn validate_recipient_address_test_2_ok() {
         let input = TEST_ADDR_STR_2;
         assert!(validate_address_checksum(input));
     }
 
     #[test]
-    fn validate_recipient_address_test_3_succeed() {
+    fn validate_recipient_address_test_3_ok() {
         let input = TEST_ADDR_STR_3;
         assert!(validate_address_checksum(input));
     }
 
     #[test]
-    fn validate_recipient_address_test_1_no_checksum_succeed() {
+    fn validate_recipient_address_test_1_no_checksum_ok() {
         let input = TEST_ADDR_STR_1.to_ascii_lowercase();
         assert!(validate_address_checksum(&input));
     }
 
     #[test]
-    fn validate_recipient_address_test_2_no_checksum_succeed() {
+    fn validate_recipient_address_test_2_no_checksum_ok() {
         let input = TEST_ADDR_STR_2.to_ascii_lowercase();
         assert!(validate_address_checksum(&input));
     }
 
     #[test]
-    fn validate_recipient_address_test_3_no_checksum_succeed() {
+    fn validate_recipient_address_test_3_no_checksum_ok() {
         let input = TEST_ADDR_STR_3.to_ascii_lowercase();
         assert!(validate_address_checksum(&input));
     }

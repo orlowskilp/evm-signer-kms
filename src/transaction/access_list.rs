@@ -77,21 +77,21 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Expected 32 bytes for storage key")]
-    fn test_deserialize_storage_key_fail_too_short() {
+    fn test_deserialize_storage_key_too_short_fail() {
         serde_plain::from_str::<StorageKey>(&TEST_STORAGE_KEY_STR_1[..(2 * STORAGE_KEY_LEN - 2)])
             .unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Expected 32 bytes for storage key")]
-    fn test_deserialize_storage_key_fail_too_long() {
+    fn test_deserialize_storage_key_too_long_fail() {
         serde_plain::from_str::<StorageKey>(format!("{}{}", TEST_STORAGE_KEY_STR_1, "00").as_str())
             .unwrap();
     }
 
     #[test]
     #[should_panic(expected = "Odd number of digits")]
-    fn test_deserialize_storage_key_fail_odd_str_len() {
+    fn test_deserialize_storage_key_odd_str_len_fail() {
         serde_plain::from_str::<StorageKey>(&TEST_STORAGE_KEY_STR_1[..(2 * STORAGE_KEY_LEN - 1)])
             .unwrap();
     }
