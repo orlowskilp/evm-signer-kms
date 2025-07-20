@@ -18,6 +18,7 @@ pub fn reflect_s(component: SignatureComponent) -> SignatureComponent {
     assert!(s_u256 <= SECP_256K1_N, "⚠️ Maximum curve value exceeded‼️");
 
     if s_u256 >= SECP_256K1_N / 2 {
+        tracing::debug!("Reflecting `s` value about x-axis");
         s_u256 = SECP_256K1_N - s_u256;
     }
 
@@ -27,44 +28,42 @@ pub fn reflect_s(component: SignatureComponent) -> SignatureComponent {
 #[cfg(test)]
 mod unit_tests {
     use super::*;
+    use tracing_test::traced_test;
 
     #[test]
-    fn test_wrap_s_max_secp_256k1_n() {
+    #[traced_test]
+    fn test_wrap_s_max_secp_256k1_n_ok() {
         let input = SignatureComponent::try_from(SECP_256K1_N.to_be_bytes()).unwrap();
-
         let left = [0x0; 32];
         let right = reflect_s(input);
-
         assert_eq!(left, right);
     }
 
     #[test]
+    #[traced_test]
     #[should_panic]
-    fn test_wrap_s_max_exceeded() {
+    fn test_wrap_s_max_exceeded_fail() {
         let input = SignatureComponent::try_from((SECP_256K1_N + 1).to_be_bytes()).unwrap();
-
         reflect_s(input);
     }
 
     #[test]
-    fn test_wrap_s_less_than_max() {
+    #[traced_test]
+    fn test_wrap_s_less_than_max_ok() {
         let input = SignatureComponent::try_from((SECP_256K1_N - 1).to_be_bytes()).unwrap();
-
         // The byte order is reversed
         let left = U256([0x01, 0x00]).to_be_bytes();
         let right = reflect_s(input);
-
         assert_eq!(left, right);
     }
 
     #[test]
-    fn test_wrap_s_one() {
+    #[traced_test]
+    fn test_wrap_s_one_ok() {
         let input = SignatureComponent::try_from(U256([0x01, 0x00]).to_be_bytes()).unwrap();
-
         // The byte order is reversed
         let left = U256([0x01, 0x00]).to_be_bytes();
         let right = reflect_s(input);
-
         assert_eq!(left, right);
     }
 }

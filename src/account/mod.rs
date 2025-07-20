@@ -22,6 +22,7 @@ const ASN1_EC_PUBLIC_KEY_OID: &str = "1.2.840.10045.2.1";
 /// OID for the SECP256K1 curve type in ASN.1 encoding
 const ASN1_EC_SECP256K1_PK_TYPE_OID: &str = "1.3.132.0.10";
 
+/// Computes the Keccak256 digest of the provided data.
 fn keccak256_digest(data: &[u8]) -> Keccak256Digest {
     Keccak256::digest(data).into()
 }
@@ -33,6 +34,7 @@ pub struct EvmAccount<'a> {
     /// The key is eagerly decoded during the account instantiation and is used for signature
     /// verification during transaction signing.
     pub public_key: PublicKey,
+    /// Reference to the AWS KMS key handke to sign transactions.
     kms_key: &'a AwsKmsKey<'a>,
 }
 
@@ -92,7 +94,7 @@ impl<'a> EvmAccount<'a> {
         })
     }
 
-    /// First signature coordinate into 32-byte array.
+    /// Fits signature coordinate into 32-byte array.
     fn fit_signature_coordinate(decoded_data: &[u8]) -> SignatureComponent {
         // The decoded signature component may be between 31 and 33 bytes long.
         let fitted_data = match decoded_data.len().cmp(&SIGNATURE_COMPONENT_LENGTH) {
@@ -108,6 +110,7 @@ impl<'a> EvmAccount<'a> {
             .expect("Invalid signature component length")
     }
 
+    /// Parses the DER-encoded signature into `r` and `s` components.
     fn parse_signature(
         signature_der: &[u8],
     ) -> Result<(SignatureComponent, SignatureComponent), Error> {
@@ -134,6 +137,7 @@ impl<'a> EvmAccount<'a> {
         })
     }
 
+    /// Recovers the public key from the compact signature and message digest, and returns the parity byte.
     fn recover_public_key(
         public_key: PublicKey,
         digest: Keccak256Digest,
@@ -153,12 +157,13 @@ impl<'a> EvmAccount<'a> {
                 return Ok(recid.into());
             }
         }
-        // If we're here, this means that the signature does not match the public key
+        // If we're here, this means that the signature does not match the public key, i.e. key verification failed.
         tracing::error!("Signature verification failed: public key does not match the signature");
         Err(secp256k1::Error::InvalidSignature)
     }
 
-    async fn sign_bytes(
+    /// Signs Keccak256 digest with the EVM account's private key.
+    async fn sign_digest(
         &self,
         digest: Keccak256Digest,
     ) -> Result<(SignatureComponent, SignatureComponent, u32), Error> {
@@ -183,7 +188,7 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<SignedTransaction<T>, Error> {
         let tx_encoding = tx.encode();
         let digest = keccak256_digest(&tx_encoding);
-        self.sign_bytes(digest).await.map(|(r, s, v)| {
+        self.sign_digest(digest).await.map(|(r, s, v)| {
             tracing::debug!(
                 "Successfully signed transaction with digest: 0x{}",
                 hex::encode(digest)
@@ -256,7 +261,7 @@ mod unit_tests {
 
     #[test]
     #[traced_test]
-    fn decode_public_key() {
+    fn test_decode_public_key_ok() {
         let input = TEST_KEY_DER;
         let left = TEST_PUBLIC_KEY.to_vec();
         let right = EvmAccount::decode_public_key(&input).unwrap();
@@ -265,7 +270,7 @@ mod unit_tests {
 
     #[test]
     #[traced_test]
-    fn parse_signature() {
+    fn test_parse_signature_ok() {
         let input = &TEST_SIGNATURE;
         let (r, s) = EvmAccount::parse_signature(input).unwrap();
         assert_eq!(r, TEST_R_1);
@@ -274,7 +279,7 @@ mod unit_tests {
 
     #[test]
     #[traced_test]
-    fn recover_public_key() {
+    fn test_recover_public_key_ok() {
         let input_public_key = TEST_PUBLIC_KEY;
         let input_digest = TEST_DIGEST;
         let left = 0i32;
