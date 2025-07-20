@@ -119,14 +119,6 @@ impl<T: Transaction> Serialize for SignedTransaction<T> {
     }
 }
 
-impl<'de, T: Transaction> Deserialize<'de> for SignedTransaction<T> {
-    fn deserialize<D: Deserializer<'de>>(_deserializer: D) -> Result<Self, D::Error> {
-        unimplemented!(
-            "Deserialization of signed transactions is not implemented. Not needed for now."
-        );
-    }
-}
-
 fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
     hex::deserialize(
         String::deserialize(deserializer)?
