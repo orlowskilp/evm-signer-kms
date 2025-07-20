@@ -1,0 +1,12 @@
+.git
+.github
+.gitignore
+.gitattributes
+.dockerignore
+.devcontainer
+.vscode
+Dockerfile.rust-env
+Dockerfile.builder
+Cargo.lock
+README.md
+target
