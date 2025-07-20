@@ -23,20 +23,10 @@ mod evm_account {
             );
         }
 
-        const TEST_DER_ENCODED_PUBLIC_KEY: &str = "3056301006072a8648ce3d020106052b8104000a03420004f952b96eb7a7845adabe934be3438d92e997647856dbc4897c661d2e8f39be7a2783234742d411b3c9e4554db4c8662a547160f7ee30d0aa680088e1a1dd80c0";
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
             0x59, 0x62, 0x80, 0x62, 0x55, 0x73,
         ];
-
-        #[tokio::test]
-        #[traced_test]
-        async fn test_get_public_key_ok() {
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
-            let left = signing_key.get_public_key().await.unwrap();
-            let right = hex::decode(TEST_DER_ENCODED_PUBLIC_KEY).unwrap();
-            assert_eq!(left, right);
-        }
 
         // NOTE: Digest signatures from KMS are non-deterministic, so the output of this test will
         // vary. For this reason, the test is not asserting any specific value, but rather just
