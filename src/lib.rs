@@ -23,7 +23,7 @@
 //!  };
 //!  use std::env;
 //!
-//!  // Name of the environment variable that contains the KMS key ID
+//!  // Name of the environment variable with the KMS key ID
 //!  const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
 //!  // Example EIP-1559 transaction JSON
 //!  const FREE_MARKET_TX_JSON: &str = r#"
@@ -142,7 +142,7 @@
 //! that your environment assumes:
 //! ```json
 //! {
-//!     "Sid": "Allow key use",
+//!     "Sid": "AllowKeyUse",
 //!     "Effect": "Allow",
 //!     "Principal": {
 //!         "AWS": "<iam_role_your_environment_assumes>"
@@ -161,7 +161,7 @@
 //! e.g. a AWS Lambda function or a ECS task, you need to allow grants:
 //! ```json
 //! {
-//!     "Sid": "Allow grants for AWS resources",
+//!     "Sid": "AllowGrantsForAwsResources",
 //!     "Effect": "Allow",
 //!     "Principal": {
 //!         "AWS": "<iam_role_your_environment_assumes>"
@@ -181,11 +181,11 @@
 //! ```
 //!
 
-/// Provides abstraction for EVM accounts to sign transactions using AWS KMS keys.
+/// Abstraction over EVM accounts for signing transactions with AWS KMS keys.
 pub mod account;
-/// Module implementing the KMS key abstraction.
+/// Implementation of the KMS key abstraction using AWS KMS SDK.
 pub mod key;
-/// Module implementing representations of EVM transactions.
+/// Representations of EVM transactions.
 pub mod transaction;
-/// Module providing type abstractions.
+/// Type shorthands.
 pub(crate) mod types;

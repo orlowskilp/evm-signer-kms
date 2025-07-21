@@ -45,6 +45,7 @@ pub trait Transaction:
     // For deserialization
     DeserializeOwned
 {
+    /// Encodes the transaction into a byte vector using RLP encoding.
     fn encode(&self) -> Vec<u8>;
 }
 

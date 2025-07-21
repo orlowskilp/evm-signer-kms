@@ -6,6 +6,7 @@ const STORAGE_KEY_LEN: usize = 32;
 
 type StorageKeyBytes = [u8; STORAGE_KEY_LEN];
 
+/// Representation of a storage key used in access lists.
 #[derive(Debug, PartialEq)]
 pub struct StorageKey {
     bytes: StorageKeyBytes,

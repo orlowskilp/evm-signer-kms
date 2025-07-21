@@ -5,9 +5,9 @@ use evm_signer_kms::{
 };
 use std::env;
 
-// Name of the environment variable that contains the KMS key ID
+/// Name of the environment variable that contains the KMS key ID
 const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
-// Example EIP-2930 transaction JSON
+/// Example legacy transaction JSON
 const LEGACY_TX_JSON: &str = r#"
 {
     "gasLimit": 21000,
@@ -19,7 +19,8 @@ const LEGACY_TX_JSON: &str = r#"
 }
 "#;
 
-// Communication with AWS endpoint is asynchronous, so we need to use async main function
+/// Communication with AWS endpoint is asynchronous, so we need to use async main function.
+/// Refer to library documentation for more details.
 #[tokio::main]
 async fn main() -> Result<()> {
     // Get KMS key ID from environment variable
