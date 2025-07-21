@@ -148,15 +148,5 @@ mod access_list_transaction {
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
         }
-
-        #[test]
-        #[traced_test]
-        #[ignore = "Input file corrupted, needs to be fixed"]
-        #[should_panic]
-        fn test_deserialize_invalid_access_list_tx_04_fail() {
-            const TX_FILE_PATH: &str = "tests/data/invalid-access-list-tx-04.json";
-            let tx_file = File::open(TX_FILE_PATH).unwrap();
-            serde_json::from_reader::<_, AccessListTransaction>(tx_file).unwrap();
-        }
     }
 }
