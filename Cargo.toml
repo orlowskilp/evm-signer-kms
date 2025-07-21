@@ -7,6 +7,7 @@ documentation = "https://docs.rs/evm-signer-kms"
 edition = "2024"
 exclude = [
   ".gitignore",
+  ".gitattributes",
   ".git",
   ".github",
   ".devcontainer",
