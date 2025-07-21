@@ -12,6 +12,8 @@ EVM transaction signing library using key pairs generated and stored in
 
 - Security - AWS KMS managed keys which never leave HSM devices.
 - Speed and reliability - Implemented in Rust.
+- Portability - Supports `x86_64` and `arm64`.
+- Simplicity - Trying to use as little external libs as possible.
 
 ## Features
 
@@ -24,12 +26,14 @@ EVM transaction signing library using key pairs generated and stored in
 ## Tool chain compatibility
 
 Works with [MUSL](https://musl.libc.org) and [GNU](https://www.gnu.org/software/libc) tool chains.
+While GNU is the most widely adopted tool chain, MUSL is somewhat more conservative and favors static
+linking over dynamic linking, making it a reasonably good candidate for secure builds.
 
 ### Building
 
 I suggest using the provided [`Makefile`](./Makefile) to get things running fast. The default build
-target is `x86_64-unknown-linux-gnu`, so this command will build the library with the GNU tool
-chain:
+target is `x86_64-unknown-linux-gnu`, so this command will build the library with the GNU latest tool
+chain for `x86_64` target:
 
 ```bash
 make build
@@ -43,13 +47,13 @@ RUSTUP_TOOLCHAIN=1.81 make build
 ```
 
 Similarly, if you want to build for a different target, you need to set the `CARGO_BUILD_TARGET`
-variable.
+variable, e.g. to build for `arm64` (aka `aarch64`) with MUSL do:
 
 ```bash
-CARGO_BUILD_TARGET=x86_64-unknown-linux-musl make build
+CARGO_BUILD_TARGET=aarch64-unknown-linux-musl make build
 ```
 
-### Supported tool chains
+### Supported platforms
 
 - `x86_64-unknown-linux-gnu`
 - `x86_64-unknown-linux-musl`
@@ -72,7 +76,7 @@ the container orchestration solution (e.g. using
 At the very least the key policy must allow these actions for the IAM role which you are going to
 use as the principal (see [documentation](https://docs.rs/evm-signer-kms) for more details):
 
-```test
+```text
 kms:DescribeKey
 kms:GetPublicKey
 kms:Sign
@@ -113,6 +117,16 @@ export KMS_KEY_ID="[REDACTED]"
 way to pass the key ID to the library logic (see examples in the
 [documentation](https://docs.rs/evm-signer-kms)) for more details.
 
+### Running examples
+
+You may want to run provided examples with:
+
+```bash
+make examples
+```
+
+Keep in mind that runtime configuration is required as decribed below.
+
 ### Testing configuration
 
 The easiest way to check whether everything works the way it should is by running tests.
@@ -150,6 +164,12 @@ cd tests/data
 
 If the tests pass, you're all set!
 
-## What's needed
+## Call for support
 
-- More more and better tests
+Feel free to contribute to this project. I welcome any and all help. These are some items that could/should be
+improved:
+
+- Testing: Always there's a room for making better tests. Coverage alone doesn't really paint the full picture.
+- Trimming down dependencies: The less external dependencies, the better. I'm continuously removing them where possible.
+- Platform support: The more are supported, the more portable the library. This hinges on AWS SDK platform though.
+- Tools: Know any good tools you feel could add value. Feel free to contribute!
