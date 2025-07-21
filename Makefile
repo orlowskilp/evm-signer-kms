@@ -14,6 +14,13 @@ doc:
 test: check-env
 	cargo test --all
 
+# Run all examples
+.PHONY: examples
+examples: check-env
+	@cargo run --bin tx-type-2
+	@cargo run --bin tx-type-1
+	@cargo run --bin tx-type-0
+
 # Clean up
 .PHONY: clean
 clean:
