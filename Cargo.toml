@@ -11,9 +11,10 @@ exclude = [
   ".git",
   ".github",
   ".devcontainer",
+  "codecov.yml",
 ]
 homepage = "https://github.com/orlowskilp/evm-signer-kms"
-keywords = ["ethereum", "evm", "signer", "kms", "aws", "secp256k1", "ethnum"]
+keywords = ["ethereum", "evm", "signer", "kms", "secp256k1"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/orlowskilp/evm-signer-kms"

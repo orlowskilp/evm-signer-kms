@@ -7,5 +7,6 @@
 .vscode
 Dockerfile
 Cargo.lock
+codecov.yml
 README.md
 target

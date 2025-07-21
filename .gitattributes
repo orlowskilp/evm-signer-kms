@@ -3,3 +3,4 @@
 .gitattributes  export-ignore
 .dockerignore   export-ignore
 Cargo.lock      export-ignore
+codecov.yml      export-ignore
