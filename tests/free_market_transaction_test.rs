@@ -127,7 +127,6 @@ mod free_market_transaction {
 
         #[test]
         #[traced_test]
-        #[ignore = "This may actually not be a valid format for deserialization after all"]
         fn test_deserialize_valid_free_market_tx_05_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-05.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();

@@ -30,7 +30,6 @@ mod legacy_transaction {
 
         #[test]
         #[traced_test]
-        #[ignore = "This may actually not be a valid format for deserialization after all"]
         fn test_deserialize_valid_legacy_tx_02_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-02.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();

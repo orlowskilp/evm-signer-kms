@@ -79,7 +79,6 @@ mod access_list_transaction {
 
         #[test]
         #[traced_test]
-        #[ignore = "This may actually not be a valid format for deserialization after all"]
         fn test_deserialize_valid_access_list_tx_03_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-03.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
