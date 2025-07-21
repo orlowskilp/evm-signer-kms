@@ -5,8 +5,7 @@
 .dockerignore
 .devcontainer
 .vscode
-Dockerfile.rust-env
-Dockerfile.builder
+Dockerfile
 Cargo.lock
 README.md
 target
