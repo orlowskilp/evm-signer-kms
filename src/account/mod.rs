@@ -3,7 +3,9 @@ mod eip2;
 use crate::{
     key::aws_kms::AwsKmsKey,
     transaction::{SignedTransaction, Transaction},
-    types::{Keccak256Digest, PublicKey, SIGNATURE_COMPONENT_LENGTH, SignatureComponent},
+    types::{
+        ADDRESS_OFFSET, Keccak256Digest, PublicKey, SIGNATURE_COMPONENT_LENGTH, SignatureComponent,
+    },
 };
 use asn1::{BigInt, BitString, ObjectIdentifier, ParseError, ParseErrorKind, Sequence};
 use eip2::reflect_s;
@@ -34,7 +36,11 @@ pub struct EvmAccount<'a> {
     /// The key is eagerly decoded during the account instantiation and is used for signature
     /// verification during transaction signing.
     pub public_key: PublicKey,
-    /// Reference to the AWS KMS key handke to sign transactions.
+
+    /// Ethereum address derived from the public key.
+    pub address: String,
+
+    /// Reference to the AWS KMS key handle to sign transactions.
     kms_key: &'a AwsKmsKey<'a>,
 }
 
@@ -87,10 +93,12 @@ impl<'a> EvmAccount<'a> {
     pub async fn new(kms_key: &'a AwsKmsKey<'a>) -> Result<Self, Error> {
         let encoded_public_key = kms_key.get_public_key().await?;
         let public_key = Self::decode_public_key(&encoded_public_key)?;
+        let address = Self::public_key_to_address(&public_key);
         tracing::info!("Successfully parsed secp256k1 public key");
         Ok(Self {
             public_key,
             kms_key,
+            address,
         })
     }
 
@@ -175,6 +183,11 @@ impl<'a> EvmAccount<'a> {
                 tracing::error!(msg);
                 Error::new(ErrorKind::InvalidData, msg)
             })
+    }
+
+    fn public_key_to_address(public_key: &PublicKey) -> String {
+        let public_key_hash = keccak256_digest(&public_key[1..]);
+        format!("0x{}", hex::encode(&public_key_hash[ADDRESS_OFFSET..]))
     }
 
     /// Signs the provided transaction with the EVM account's private key.
@@ -286,6 +299,14 @@ mod unit_tests {
         let right =
             EvmAccount::recover_public_key(input_public_key, input_digest, &TEST_R_2, &TEST_S_2)
                 .unwrap();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_public_key_to_address() {
+        let left = EvmAccount::public_key_to_address(&TEST_PUBLIC_KEY);
+        let right = "0x70ad754ff670077411df598fcffd61c48299f12f".to_string();
         assert_eq!(left, right);
     }
 }
