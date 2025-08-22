@@ -28,10 +28,9 @@ pub fn reflect_s(component: SignatureComponent) -> SignatureComponent {
 #[cfg(test)]
 mod unit_tests {
     use super::*;
-    use tracing_test::traced_test;
+    use test_log::test;
 
     #[test]
-    #[traced_test]
     fn test_wrap_s_max_secp_256k1_n_ok() {
         let input = SignatureComponent::try_from(SECP_256K1_N.to_be_bytes()).unwrap();
         let left = [0x0; 32];
@@ -40,7 +39,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     #[should_panic]
     fn test_wrap_s_max_exceeded_fail() {
         let input = SignatureComponent::try_from((SECP_256K1_N + 1).to_be_bytes()).unwrap();
@@ -48,7 +46,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_wrap_s_less_than_max_ok() {
         let input = SignatureComponent::try_from((SECP_256K1_N - 1).to_be_bytes()).unwrap();
         // The byte order is reversed
@@ -58,7 +55,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_wrap_s_one_ok() {
         let input = SignatureComponent::try_from(U256([0x01, 0x00]).to_be_bytes()).unwrap();
         // The byte order is reversed

@@ -4,7 +4,7 @@ mod legacy_transaction {
             address::AccountAddress, legacy_transaction::LegacyTransaction,
         };
         use std::fs::File;
-        use tracing_test::traced_test;
+        use test_log::test;
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
@@ -12,7 +12,6 @@ mod legacy_transaction {
         ];
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_legacy_tx_01_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-01.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -29,7 +28,6 @@ mod legacy_transaction {
         }
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_legacy_tx_02_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-02.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -46,7 +44,6 @@ mod legacy_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_legacy_tx_01_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-legacy-tx-01.json";
@@ -55,7 +52,6 @@ mod legacy_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_legacy_tx_02_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-legacy-tx-02.json";
@@ -64,7 +60,6 @@ mod legacy_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_legacy_tx_03_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-legacy-tx-03.json";

@@ -12,7 +12,7 @@ mod evm_account {
         use lazy_static::lazy_static;
         use std::env;
         use std::fs::File;
-        use tracing_test::traced_test;
+        use test_log::test;
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!
@@ -31,8 +31,7 @@ mod evm_account {
         // NOTE: Digest signatures from KMS are non-deterministic, so the output of this test will
         // vary. For this reason, the test is not asserting any specific value, but rather just
         // assess whether transaction encoding can be performed without errors.
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_sign_transaction_ok() {
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
             let evm_account = EvmAccount::new(signing_key);
@@ -55,8 +54,7 @@ mod evm_account {
                 .unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_encode_signed_legacy_tx_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-01.json";
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
@@ -71,8 +69,7 @@ mod evm_account {
                 .unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_encode_signed_access_list_tx_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
 
@@ -90,8 +87,7 @@ mod evm_account {
                 .unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_no_access_list_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
@@ -106,8 +102,7 @@ mod evm_account {
                 .unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_with_access_list_1_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;
@@ -122,8 +117,7 @@ mod evm_account {
                 .unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_with_access_list_2_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
             let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID).await;

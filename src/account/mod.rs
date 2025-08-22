@@ -215,7 +215,7 @@ impl<'a> EvmAccount<'a> {
 mod unit_tests {
     use super::*;
     use crate::types::{KECCAK_256_LENGTH, UNCOMPRESSED_PUBLIC_KEY_LENGTH};
-    use tracing_test::traced_test;
+    use test_log::test;
 
     const TEST_KEY_DER: [u8; 88] = [
         0x30, 0x56, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05,
@@ -273,7 +273,6 @@ mod unit_tests {
     ];
 
     #[test]
-    #[traced_test]
     fn test_decode_public_key_ok() {
         let input = TEST_KEY_DER;
         let left = TEST_PUBLIC_KEY.to_vec();
@@ -282,7 +281,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_parse_signature_ok() {
         let input = &TEST_SIGNATURE;
         let (r, s) = EvmAccount::parse_signature(input).unwrap();
@@ -291,7 +289,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_recover_public_key_ok() {
         let input_public_key = TEST_PUBLIC_KEY;
         let input_digest = TEST_DIGEST;
@@ -303,7 +300,6 @@ mod unit_tests {
     }
 
     #[test]
-    #[traced_test]
     fn test_public_key_to_address() {
         let left = EvmAccount::public_key_to_address(&TEST_PUBLIC_KEY);
         let right = "0x70ad754ff670077411df598fcffd61c48299f12f".to_string();

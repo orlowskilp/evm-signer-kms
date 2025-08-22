@@ -7,7 +7,7 @@ mod kms_key {
         use evm_signer_kms::key::aws_kms::AwsKmsKey;
         use lazy_static::lazy_static;
         use std::env;
-        use tracing_test::traced_test;
+        use test_log::test;
 
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!
@@ -50,8 +50,7 @@ mod kms_key {
                 .expect("Error verifying KMS signature")
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_get_public_key_ok() {
             let signing_key = AwsKmsKey::new(&KMS_KEY_ID).await;
             let left = signing_key.get_public_key().await.unwrap();
@@ -59,16 +58,14 @@ mod kms_key {
             assert_eq!(left, right);
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         #[should_panic]
         async fn test_get_public_key_fail() {
             let kms_key = AwsKmsKey::new(DUMMY_KMS_KEY_ID);
             kms_key.await.get_public_key().await.unwrap();
         }
 
-        #[tokio::test]
-        #[traced_test]
+        #[test(tokio::test)]
         async fn test_sign_ok() {
             let kms_key = AwsKmsKey::new(&KMS_KEY_ID);
             let message = &DUMMY_MESSAGE_DIGEST.to_vec();

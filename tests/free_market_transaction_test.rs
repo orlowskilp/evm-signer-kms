@@ -6,7 +6,7 @@ mod free_market_transaction {
             free_market_transaction::FreeMarketTransaction,
         };
         use std::fs::File;
-        use tracing_test::traced_test;
+        use test_log::test;
 
         const TEST_TO_ADDRESS_BYTES: [u8; 20] = [
             0xa9, 0xd8, 0x91, 0x86, 0xca, 0xa6, 0x63, 0xc8, 0xef, 0x03, 0x52, 0xfd, 0x1d, 0xb3,
@@ -14,7 +14,6 @@ mod free_market_transaction {
         ];
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_free_market_tx_01_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -34,7 +33,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_free_market_tx_02_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-02.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -54,7 +52,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_free_market_tx_03_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -80,7 +77,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_free_market_tx_04_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -126,7 +122,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         fn test_deserialize_valid_free_market_tx_05_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-05.json";
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -172,7 +167,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_free_market_tx_01_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-01.json";
@@ -181,7 +175,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_free_market_tx_02_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-02.json";
@@ -190,7 +183,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_free_market_tx_03_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-03.json";
@@ -199,7 +191,6 @@ mod free_market_transaction {
         }
 
         #[test]
-        #[traced_test]
         #[should_panic]
         fn test_deserialize_invalid_free_market_tx_04_fail() {
             const TX_FILE_PATH: &str = "tests/data/invalid-free-market-tx-04.json";

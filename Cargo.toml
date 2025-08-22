@@ -1,6 +1,6 @@
 [package]
 name = "evm-signer-kms"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Lukasz Orlowski <lukasz@orlowski.io>"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
 documentation = "https://docs.rs/evm-signer-kms"
@@ -51,5 +51,5 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 
 [dev-dependencies]
 lazy_static = "1.5.0"
+test-log = "0.2.18"
 tokio-test = "0.4.4"
-tracing-test = "0.2.5"
