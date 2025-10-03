@@ -37,6 +37,7 @@ anyhow = "1.0.98"
 asn1 = "0.20.0"
 aws-config = { version = "1.5.15", features = ["behavior-version-latest"] }
 aws-sdk-kms = "1.57.0"
+aws-sdk-sts = "1.86.0"
 ethnum = "1.5.0"
 hex = { version = "0.4.3", features = ["serde"] }
 rlp = "0.6.1"

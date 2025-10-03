@@ -2,7 +2,7 @@
 
 [![Crates.io Version](https://img.shields.io/crates/v/evm-signer-kms)](https://crates.io/crates/evm-signer-kms)
 [![evm-signer-kms](https://github.com/orlowskilp/evm-signer-kms/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/orlowskilp/evm-signer-kms/actions/workflows/build-and-test.yml)
-[![codecov](https://codecov.io/github/orlowskilp/evm-signer-kms/branch/master/graph/badge.svg?token=DGY9EZFV5L)](https://codecov.io/github/orlowskilp/evm-signer-kms)
+[![codecov](https://codecov.io/gh/orlowskilp/evm-signer-kms/graph/badge.svg?token=DGY9EZFV5L)](https://codecov.io/gh/orlowskilp/evm-signer-kms)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](/LICENSE)
 
 EVM transaction signing library using key pairs generated and stored in

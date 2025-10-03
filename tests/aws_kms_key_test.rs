@@ -52,7 +52,7 @@ mod kms_key {
 
         #[test(tokio::test)]
         async fn test_get_public_key_ok() {
-            let signing_key = AwsKmsKey::new(&KMS_KEY_ID).await;
+            let signing_key = AwsKmsKey::new(&KMS_KEY_ID, None).await;
             let left = signing_key.get_public_key().await.unwrap();
             let right = TEST_DER_ENCODED_PUBLIC_KEY;
             assert_eq!(left, right);
@@ -61,13 +61,13 @@ mod kms_key {
         #[test(tokio::test)]
         #[should_panic]
         async fn test_get_public_key_fail() {
-            let kms_key = AwsKmsKey::new(DUMMY_KMS_KEY_ID);
+            let kms_key = AwsKmsKey::new(DUMMY_KMS_KEY_ID, None);
             kms_key.await.get_public_key().await.unwrap();
         }
 
         #[test(tokio::test)]
         async fn test_sign_ok() {
-            let kms_key = AwsKmsKey::new(&KMS_KEY_ID);
+            let kms_key = AwsKmsKey::new(&KMS_KEY_ID, None);
             let message = &DUMMY_MESSAGE_DIGEST.to_vec();
             let signature = &kms_key.await.sign(message).await.unwrap();
             assert!(verify_kms_signature(message, signature).await);

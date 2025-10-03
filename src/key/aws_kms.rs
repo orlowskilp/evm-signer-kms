@@ -1,5 +1,6 @@
+use aws_config::{SdkConfig, sts::AssumeRoleProvider};
 use aws_sdk_kms::{
-    Client,
+    Client as KmsClient,
     primitives::Blob,
     types::{MessageType, SigningAlgorithmSpec},
 };
@@ -35,11 +36,22 @@ use std::io::{Error, ErrorKind, Result};
 /// }
 /// ```
 pub struct AwsKmsKey<'a> {
-    kms_client: Client,
+    kms_client: KmsClient,
     kms_key_id: &'a str,
 }
 
 impl<'a> AwsKmsKey<'a> {
+    async fn assume_role(config: &SdkConfig, role_arn: &str, session_name: &str) -> SdkConfig {
+        let provider = AssumeRoleProvider::builder(role_arn)
+            .session_name(session_name)
+            .configure(config)
+            .build()
+            .await;
+        aws_config::from_env()
+            .credentials_provider(provider)
+            .load()
+            .await
+    }
     /// Creates a new `KmsKey` instance tied to KMS key identified by KMS key ID.
     ///
     /// Expects that AWS configuration is set in the environment, including a valid `AWS_REGION`.
@@ -60,10 +72,15 @@ impl<'a> AwsKmsKey<'a> {
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation. The public key OID is later verified
     /// during key decoding.
-    pub async fn new(kms_key_id: &'a str) -> Self {
-        let config = aws_config::from_env().load().await;
-        tracing::info!("AWS credentials and region loaded from environment successfully");
-        let kms_client = Client::new(&config);
+    pub async fn new(kms_key_id: &'a str, role: Option<String>) -> Self {
+        const AWS_STS_SESSION_NAME: &str = "evm-signer-kms-session";
+        let mut config = aws_config::from_env().load().await;
+        if let Some(role_arn) = role {
+            config = Self::assume_role(&config, &role_arn, AWS_STS_SESSION_NAME).await;
+            tracing::info!("Assumed role: {role_arn}");
+        }
+        tracing::info!("AWS credentials and region loaded successfully");
+        let kms_client = KmsClient::new(&config);
         tracing::info!("AWS KMS client created successfully");
         Self {
             kms_client,
