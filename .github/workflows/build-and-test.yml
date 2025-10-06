@@ -41,6 +41,7 @@ jobs:
     env:
       LCOV_OUT: test-coverage.lcov
       KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+      TEST_DER_PUB_KEY: ${{ secrets.TEST_DER_PUB_KEY }}
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v4
