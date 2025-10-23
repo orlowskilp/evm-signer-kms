@@ -20,17 +20,17 @@ readme = "README.md"
 repository = "https://github.com/orlowskilp/evm-signer-kms"
 description = "EVM signer using keys from AWS KMS"
 
-[[bin]]
+[[example]]
 name = "tx-type-2"
-path = "bin/tx-type-2-example.rs"
+path = "examples/tx-type-2-example.rs"
 
-[[bin]]
+[[example]]
 name = "tx-type-1"
-path = "bin/tx-type-1-example.rs"
+path = "examples/tx-type-1-example.rs"
 
-[[bin]]
+[[example]]
 name = "tx-type-0"
-path = "bin/tx-type-0-example.rs"
+path = "examples/tx-type-0-example.rs"
 
 [dependencies]
 anyhow = "1.0.98"

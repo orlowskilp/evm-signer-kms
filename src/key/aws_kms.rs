@@ -41,6 +41,8 @@ pub struct AwsKmsKey<'a> {
 }
 
 impl<'a> AwsKmsKey<'a> {
+    /// Assumes an IAM role and returns a new AWS SDK configuration, which then can be used to create
+    /// AWS service clients with the assumed role's permissions.
     async fn assume_role(config: &SdkConfig, role_arn: &str, session_name: &str) -> SdkConfig {
         let provider = AssumeRoleProvider::builder(role_arn)
             .session_name(session_name)
@@ -72,11 +74,12 @@ impl<'a> AwsKmsKey<'a> {
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation. The public key OID is later verified
     /// during key decoding.
-    pub async fn new(kms_key_id: &'a str, role: Option<String>) -> Self {
+    pub async fn new(kms_key_id: &'a str, role: Option<&'a str>) -> Self {
+        // TODO: Make session name configurable, depending on identity provider used.
         const AWS_STS_SESSION_NAME: &str = "evm-signer-kms-session";
         let mut config = aws_config::from_env().load().await;
         if let Some(role_arn) = role {
-            config = Self::assume_role(&config, &role_arn, AWS_STS_SESSION_NAME).await;
+            config = Self::assume_role(&config, role_arn, AWS_STS_SESSION_NAME).await;
             tracing::info!("Assumed role: {role_arn}");
         }
         tracing::info!("AWS credentials and region loaded successfully");
