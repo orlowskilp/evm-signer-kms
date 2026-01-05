@@ -1,5 +1,7 @@
+ARG VERSION=latest
+
 # Version is provided in devcontainer.json
-FROM archlinux:latest
+FROM archlinux:${VERSION}
 
 # These are meant to be provided in devcontainer.json
 ARG USERNAME
@@ -20,6 +22,8 @@ RUN pacman -Suy --noconfirm \
     musl-aarch64 \
     make \
     jq \
+    xxd \
+    direnv \
     docker \
     docker-compose \
     sudo && \
@@ -33,7 +37,9 @@ USER ${USERNAME}
 WORKDIR ${HOME_DIR}
 
 # Install Rust and some useful tools
-ENV PATH=$PATH:${HOME_DIR}/.cargo/bin
+ENV PATH=$PATH:${HOME_DIR}/.cargo/bin \
+    CARGO_TERM_COLOR=always
+RUN echo eval '"$(direnv hook bash)"' >> ${HOME_DIR}/.bashrc
 RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y && \
     cargo install \
         cargo-llvm-cov \

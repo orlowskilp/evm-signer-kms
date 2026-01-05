@@ -15,8 +15,10 @@
   "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
   "remoteEnv": {
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
-    "AWS_REGION": "ap-southeast-1",
-    "KMS_KEY_ID": "75a7b3e9-d1dd-4a14-8ca7-92697dc3610c",
+    "CONTAINER_WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "TEST_DATA_DIR": "${containerWorkspaceFolder}/tests/data",
+    "TEST_PEM_PUB_KEY_FILE_NAME": "pub-key.pem",
+    "TEST_DER_PUB_KEY_FILE_NAME": "pub-key.der",
     "CC_X86_64_UNKNOWN_LINUX_GNU": "gcc",
     "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER": "gcc",
     "CC_X86_64_UNKNOWN_LINUX_MUSL": "musl-gcc",
@@ -34,18 +36,17 @@
       "extensions": [
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
-        "tamasfe.even-better-toml",
         "DavidAnson.vscode-markdownlint",
-        "mhutchie.git-graph",
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "GitHub.vscode-github-actions",
         "ms-azuretools.vscode-docker",
+        "ms-azuretools.vscode-containers",
         "ms-vscode.makefile-tools",
-        "redhat.vscode-yaml",
         "AmazonWebServices.aws-toolkit-vscode",
         "docker.docker",
-        "Codecov.codecov"
+        "Codecov.codecov",
+        "tamasfe.even-better-toml"
       ]
     }
   },

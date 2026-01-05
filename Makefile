@@ -11,7 +11,7 @@ doc:
 
 # Run all tests (no coverage)
 .PHONY: test
-test: check-env
+test: fetch-public-key
 	cargo test --all
 
 # Run all examples
@@ -31,7 +31,7 @@ clean:
 # Run unit and integration tests and measure coverage.
 # Additional flags can be passed with LLVM_COV_ARGS
 .PHONY: test-coverage
-test-coverage: check-env
+test-coverage: fetch-public-key
 	cargo llvm-cov $(LLVM_COV_ARGS)
 
 # Run only documentation tests (shorthand for developers)
@@ -59,9 +59,9 @@ format:
 
 # Download and decode the public key from KMS
 .PHONY: fetch-public-key
-PUBLIC_KEY_FILE_PATH = ./tests/data/pub-key
-PUBLIC_KEY_FILE_PEM = $(PUBLIC_KEY_FILE_PATH).pem
-PUBLIC_KEY_FILE_DER = $(PUBLIC_KEY_FILE_PATH).der
+PUBLIC_KEY_FILE_PATH = $(TEST_DATA_DIR)
+PUBLIC_KEY_FILE_PEM = $(PUBLIC_KEY_FILE_PATH)/$(TEST_PEM_PUB_KEY_FILE_NAME)
+PUBLIC_KEY_FILE_DER = $(PUBLIC_KEY_FILE_PATH)/$(TEST_DER_PUB_KEY_FILE_NAME)
 fetch-public-key: check-env
 	@aws kms get-public-key \
 		--region $(AWS_REGION) \

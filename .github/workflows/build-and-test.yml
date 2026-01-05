@@ -63,6 +63,9 @@ jobs:
       - name: Run unit and integration tests
         env:
           LLVM_COV_ARGS: --lcov --output-path ${{ env.LCOV_OUT }}
+          TEST_DATA_DIR: ${{ vars.TEST_DATA_DIR }}
+          TEST_DER_PUB_KEY_FILE_NAME: ${{ vars.TEST_DER_PUB_KEY_FILE_NAME }}
+          TEST_PEM_PUB_KEY_FILE_NAME: ${{ vars.TEST_PEM_PUB_KEY_FILE_NAME }}
         run: |
           make fetch-public-key
           make test-coverage
@@ -71,11 +74,13 @@ jobs:
         run: make doc-test
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: coverage
           files: ./${{ env.LCOV_OUT }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   build:
     name: Build all targets
