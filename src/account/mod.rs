@@ -157,7 +157,7 @@ impl<'a> EvmAccount<'a> {
         for recid in [RecoveryId::Zero, RecoveryId::One] {
             let recovered_sig = RecoverableSignature::from_compact(&compact_signature, recid)?;
             let recovered_pub_key =
-                Secp256k1::verification_only().recover_ecdsa(&message_digest, &recovered_sig)?;
+                Secp256k1::verification_only().recover_ecdsa(message_digest, &recovered_sig)?;
             if recovered_pub_key.serialize_uncompressed() == public_key {
                 tracing::debug!(
                     "Recovered public key matches the provided public key with recid: {recid:?}"

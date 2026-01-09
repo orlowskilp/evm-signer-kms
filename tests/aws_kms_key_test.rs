@@ -6,6 +6,7 @@ mod kms_key {
         };
         use evm_signer_kms::key::aws_kms::AwsKmsKey;
         use lazy_static::lazy_static;
+        use serial_test::serial;
         use std::env;
         use test_log::test;
 
@@ -66,11 +67,21 @@ mod kms_key {
         }
 
         #[test(tokio::test)]
+        #[serial]
         async fn test_sign_ok() {
             let kms_key = AwsKmsKey::new(&KMS_KEY_ID, None);
             let message = &DUMMY_MESSAGE_DIGEST.to_vec();
             let signature = &kms_key.await.sign(message).await.unwrap();
             assert!(verify_kms_signature(message, signature).await);
+        }
+
+        #[test(tokio::test)]
+        #[serial]
+        async fn test_disable_sign_and_then_enable_ok() {
+            let kms_key = AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            kms_key.disable().await.unwrap();
+            assert!(kms_key.sign(&DUMMY_MESSAGE_DIGEST).await.is_err());
+            kms_key.enable().await.unwrap();
         }
     }
 }

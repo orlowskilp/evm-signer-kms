@@ -148,4 +148,34 @@ impl<'a> AwsKmsKey<'a> {
             })
             .map(|sig| sig.to_owned().into_inner())
     }
+
+    /// Enables previously disabled KMS key.
+    pub async fn enable(&self) -> Result<()> {
+        self.kms_client
+            .enable_key()
+            .key_id(self.kms_key_id)
+            .send()
+            .await
+            .map_err(|err| {
+                let msg = format!("Error enabling KMS key: {err:?}");
+                tracing::error!(msg);
+                Error::new(ErrorKind::PermissionDenied, msg)
+            })
+            .map(|_| tracing::info!("KMS key enabled: {}", self.kms_key_id))
+    }
+
+    /// Disables the KMS key, preventing any signing operations.
+    pub async fn disable(&self) -> Result<()> {
+        self.kms_client
+            .disable_key()
+            .key_id(self.kms_key_id)
+            .send()
+            .await
+            .map_err(|err| {
+                let msg = format!("Error disabling KMS key: {err:?}");
+                tracing::error!(msg);
+                Error::new(ErrorKind::PermissionDenied, msg)
+            })
+            .map(|_| tracing::info!("KMS key disabled: {}", self.kms_key_id))
+    }
 }
