@@ -1,0 +1,9 @@
+[profile.ci]
+fail-fast = false
+slow-timeout = "5s"
+test-threads = 1
+retries = 2
+run-extra-args = ["--help"]
+
+[profile.ci.junit]
+path = "junit.xml"

@@ -20,6 +20,10 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 1
+
 jobs:
   lint:
     name: Run checks on formatting
@@ -40,6 +44,7 @@ jobs:
     needs: lint
     env:
       LCOV_OUT: test-coverage.lcov
+      JUNIT_OUT: target/nextest/ci/junit.xml
       KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
       TEST_DER_PUB_KEY: ${{ secrets.TEST_DER_PUB_KEY }}
     steps:
@@ -51,6 +56,11 @@ jobs:
 
       - name: Install llvm-cov for code coverage
         uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Install nextest for code coverage
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
 
       - name: Assume AWS role
         uses: aws-actions/configure-aws-credentials@v4
@@ -66,9 +76,11 @@ jobs:
           TEST_DATA_DIR: ${{ vars.TEST_DATA_DIR }}
           TEST_DER_PUB_KEY_FILE_NAME: ${{ vars.TEST_DER_PUB_KEY_FILE_NAME }}
           TEST_PEM_PUB_KEY_FILE_NAME: ${{ vars.TEST_PEM_PUB_KEY_FILE_NAME }}
+          NEXTEST_HIDE_PROGRESS_BAR: 1
         run: |
           make fetch-public-key
           make test-coverage
+          cargo nextest run --profile ci
 
       - name: Run doc tests
         run: make doc-test
@@ -80,6 +92,15 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           report_type: coverage
           files: ./${{ env.LCOV_OUT }}
+          fail_ci_if_error: false
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          files: ${{ env.JUNIT_OUT }}
           fail_ci_if_error: false
 
   build:
