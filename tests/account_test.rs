@@ -33,7 +33,12 @@ mod evm_account {
         // assess whether transaction encoding can be performed without errors.
         #[test(tokio::test)]
         async fn test_sign_transaction_ok() {
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx = FreeMarketTransaction {
                 gas_limit: 21_000,
@@ -57,7 +62,12 @@ mod evm_account {
         #[test(tokio::test)]
         async fn test_encode_signed_legacy_tx_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-legacy-tx-01.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -73,7 +83,12 @@ mod evm_account {
         async fn test_encode_signed_access_list_tx_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-access-list-tx-02.json";
 
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
 
             let tx_file = File::open(TX_FILE_PATH).unwrap();
@@ -90,7 +105,12 @@ mod evm_account {
         #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_no_access_list_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-01.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -105,7 +125,12 @@ mod evm_account {
         #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_with_access_list_1_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
@@ -120,7 +145,12 @@ mod evm_account {
         #[test(tokio::test)]
         async fn test_encode_signed_free_market_tx_with_access_list_2_ok() {
             const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(&KMS_KEY_ID, None).await;
+            let signing_key = &aws_kms::AwsKmsKey::new(
+                &KMS_KEY_ID,
+                #[cfg(feature = "sts-assume-role")]
+                None,
+            )
+            .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
             let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();

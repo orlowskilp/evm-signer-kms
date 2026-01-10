@@ -32,12 +32,17 @@ path = "examples/tx-type-1-example.rs"
 name = "tx-type-0"
 path = "examples/tx-type-0-example.rs"
 
+[features]
+sts-assume-role = [
+  "dep:aws-sdk-sts",
+]
+
 [dependencies]
 anyhow = "1.0.100"
 asn1 = "0.23.0"
 aws-config = { version = "1.8.12", features = ["behavior-version-latest"] }
 aws-sdk-kms = "1.97.0"
-aws-sdk-sts = "1.95.0"
+aws-sdk-sts = { version = "1.95.0", optional = true }
 ethnum = "1.5.2"
 hex = { version = "0.4.3", features = ["serde"] }
 rlp = "0.6.1"

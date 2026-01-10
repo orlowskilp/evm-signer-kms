@@ -1,3 +1,4 @@
+#[cfg(feature = "sts-assume-role")]
 use aws_config::{SdkConfig, sts::AssumeRoleProvider};
 use aws_sdk_kms::{
     Client as KmsClient,
@@ -41,6 +42,7 @@ pub struct AwsKmsKey<'a> {
 }
 
 impl<'a> AwsKmsKey<'a> {
+    #[cfg(feature = "sts-assume-role")]
     /// Assumes an IAM role and returns a new AWS SDK configuration, which then can be used to create
     /// AWS service clients with the assumed role's permissions.
     async fn assume_role(config: &SdkConfig, role_arn: &str, session_name: &str) -> SdkConfig {
@@ -74,14 +76,27 @@ impl<'a> AwsKmsKey<'a> {
     /// **Note**: Neither the key ID nor the key's cryptographic configuration are verified.
     /// The method relies on the AWS SDK to do the validation. The public key OID is later verified
     /// during key decoding.
-    pub async fn new(kms_key_id: &'a str, role: Option<&'a str>) -> Self {
-        // TODO: Make session name configurable, depending on identity provider used.
-        const AWS_STS_SESSION_NAME: &str = "evm-signer-kms-session";
-        let mut config = aws_config::from_env().load().await;
-        if let Some(role_arn) = role {
-            config = Self::assume_role(&config, role_arn, AWS_STS_SESSION_NAME).await;
-            tracing::info!("Assumed role: {role_arn}");
-        }
+    pub async fn new(
+        kms_key_id: &'a str,
+        #[cfg(feature = "sts-assume-role")] role: Option<&'a str>,
+    ) -> Self {
+        let config = {
+            let config = aws_config::from_env().load().await;
+            #[cfg(not(feature = "sts-assume-role"))]
+            {
+                config
+            }
+            #[cfg(feature = "sts-assume-role")]
+            match role {
+                Some(role_arn) => {
+                    // TODO: Make session name configurable, depending on identity provider used.
+                    const AWS_STS_SESSION_NAME: &str = "evm-signer-kms-session";
+                    tracing::info!("Assumed role: {role_arn}");
+                    Self::assume_role(&config, role_arn, AWS_STS_SESSION_NAME).await
+                }
+                None => config,
+            }
+        };
         tracing::info!("AWS credentials and region loaded successfully");
         let kms_client = KmsClient::new(&config);
         tracing::info!("AWS KMS client created successfully");

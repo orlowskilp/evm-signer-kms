@@ -12,7 +12,7 @@ doc:
 # Run all tests (no coverage)
 .PHONY: test
 test: fetch-public-key
-	cargo test --all
+	cargo test --all-features
 
 # Run all examples
 .PHONY: examples
@@ -32,7 +32,7 @@ clean:
 # Additional flags can be passed with LLVM_COV_ARGS
 .PHONY: test-coverage
 test-coverage: fetch-public-key
-	cargo llvm-cov $(LLVM_COV_ARGS)
+	cargo llvm-cov --all-features $(LLVM_COV_ARGS)
 
 # Run only documentation tests (shorthand for developers)
 .PHONY: doc-test

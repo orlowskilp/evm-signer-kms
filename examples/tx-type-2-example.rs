@@ -31,7 +31,12 @@ async fn main() -> Result<()> {
     })?;
 
     // Create a new KMS key
-    let kms_key = &AwsKmsKey::new(&kms_key_id, None).await;
+    let kms_key = &AwsKmsKey::new(
+        &kms_key_id,
+        #[cfg(feature = "sts-assume-role")]
+        None,
+    )
+    .await;
     // Create a new EVM account
     let evm_account = EvmAccount::new(kms_key).await.or_else(|err| {
         bail!("Create EVM account: {err}");
