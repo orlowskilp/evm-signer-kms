@@ -154,15 +154,13 @@ impl<'a> EvmAccount<'a> {
     ) -> Result<i32, secp256k1::Error> {
         let compact_signature = [r.as_ref(), s.as_ref()].concat();
         let message_digest = Message::from_digest(digest);
-        for recid in [RecoveryId::Zero, RecoveryId::One] {
-            let recovered_sig = RecoverableSignature::from_compact(&compact_signature, recid)?;
+        for rec_id in [RecoveryId::Zero, RecoveryId::One] {
+            let recovered_sig = RecoverableSignature::from_compact(&compact_signature, rec_id)?;
             let recovered_pub_key =
                 Secp256k1::verification_only().recover_ecdsa(message_digest, &recovered_sig)?;
             if recovered_pub_key.serialize_uncompressed() == public_key {
-                tracing::debug!(
-                    "Recovered public key matches the provided public key with recid: {recid:?}"
-                );
-                return Ok(recid.into());
+                tracing::debug!("Recovered public key with recovery ID: {rec_id:?}");
+                return Ok(rec_id.into());
             }
         }
         // If we're here, this means that the signature does not match the public key, i.e. key verification failed.
@@ -179,7 +177,7 @@ impl<'a> EvmAccount<'a> {
         Self::recover_public_key(self.public_key, digest, &r, &s)
             .map(|v| (r, s, v as u32))
             .map_err(|err| {
-                let msg = format!("Failed to recover public key: {err}");
+                let msg = format!("Public key recovery failed: {err}");
                 tracing::error!(msg);
                 Error::new(ErrorKind::InvalidData, msg)
             })
