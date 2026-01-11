@@ -47,6 +47,7 @@ jobs:
       JUNIT_OUT: target/nextest/ci/junit.xml
       KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
       TEST_DER_PUB_KEY: ${{ secrets.TEST_DER_PUB_KEY }}
+      TEST_DUMMY_ROLE: ${{ secrets.TEST_DUMMY_ROLE }}
     steps:
       - name: Checkout codebase
         uses: actions/checkout@v4

@@ -13,9 +13,17 @@ mod kms_key {
         // Reads the KMS_KEY_ID environment variable using lazy static evaluation.
         // Assumes no default value and fails if the key ID is not set!
         const KMS_KEY_ID_VAR_NAME: &str = "KMS_KEY_ID";
+        #[cfg(feature = "sts-assume-role")]
+        const TEST_DUMMY_ROLE_VAR_NAME: &str = "TEST_DUMMY_ROLE";
         lazy_static! {
             static ref KMS_KEY_ID: String = env::var(KMS_KEY_ID_VAR_NAME).unwrap_or_else(
                 |_| panic!("⚠️ `{KMS_KEY_ID_VAR_NAME}` environment variable not set")
+            );
+        }
+        #[cfg(feature = "sts-assume-role")]
+        lazy_static! {
+            static ref TEST_DUMMY_ROLE: String = env::var(TEST_DUMMY_ROLE_VAR_NAME).unwrap_or_else(
+                |_| panic!("⚠️ `{TEST_DUMMY_ROLE_VAR_NAME}` environment variable not set")
             );
         }
 
@@ -64,6 +72,14 @@ mod kms_key {
             assert_eq!(left, right);
         }
 
+        #[cfg(feature = "sts-assume-role")]
+        #[test(tokio::test)]
+        #[should_panic(expected = "AccessDeniedException")]
+        async fn test_get_public_key_invalid_role_fail() {
+            let signing_key = AwsKmsKey::new(&KMS_KEY_ID, Some(&TEST_DUMMY_ROLE)).await;
+            signing_key.get_public_key().await.unwrap();
+        }
+
         #[test(tokio::test)]
         #[should_panic]
         async fn test_get_public_key_fail() {
@@ -73,6 +89,16 @@ mod kms_key {
                 None,
             );
             kms_key.await.get_public_key().await.unwrap();
+        }
+
+        #[cfg(feature = "sts-assume-role")]
+        #[test(tokio::test)]
+        #[serial]
+        #[should_panic(expected = "AccessDeniedException")]
+        async fn test_sign_invalid_role_fail() {
+            let kms_key = AwsKmsKey::new(&KMS_KEY_ID, Some(&TEST_DUMMY_ROLE));
+            let message = &DUMMY_MESSAGE_DIGEST.to_vec();
+            kms_key.await.sign(message).await.unwrap();
         }
 
         #[test(tokio::test)]
@@ -100,6 +126,28 @@ mod kms_key {
             kms_key.disable().await.unwrap();
             assert!(kms_key.sign(&DUMMY_MESSAGE_DIGEST).await.is_err());
             kms_key.enable().await.unwrap();
+        }
+
+        #[cfg(feature = "sts-assume-role")]
+        #[test(tokio::test)]
+        #[should_panic(expected = "AccessDeniedException")]
+        async fn test_enable_key_invalid_role_fail() {
+            AwsKmsKey::new(&KMS_KEY_ID, Some(&TEST_DUMMY_ROLE))
+                .await
+                .enable()
+                .await
+                .unwrap();
+        }
+
+        #[cfg(feature = "sts-assume-role")]
+        #[test(tokio::test)]
+        #[should_panic(expected = "AccessDeniedException")]
+        async fn test_disable_key_invalid_role_fail() {
+            AwsKmsKey::new(&KMS_KEY_ID, Some(&TEST_DUMMY_ROLE))
+                .await
+                .disable()
+                .await
+                .unwrap();
         }
     }
 }
