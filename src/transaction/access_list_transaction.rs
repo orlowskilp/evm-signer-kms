@@ -8,7 +8,7 @@ const EIP_2930_TX_TYPE_ID: u8 = 0x01;
 ///
 /// Type 1 transaction format for transactions with an optional access list as defined in
 /// [`EIP-2930`](https://eips.ethereum.org/EIPS/eip-2930).
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessListTransaction {
     /// Chain ID of the network to prevent replay attacks

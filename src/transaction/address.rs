@@ -9,7 +9,7 @@ use std::io::{Error as IoError, ErrorKind};
 type AccountAddressBytes = [u8; ADDRESS_LENGTH];
 
 /// EVM address abstraction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AccountAddress {
     bytes: AccountAddressBytes,
 }

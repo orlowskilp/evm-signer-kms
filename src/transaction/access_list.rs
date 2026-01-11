@@ -7,7 +7,7 @@ const STORAGE_KEY_LEN: usize = 32;
 type StorageKeyBytes = [u8; STORAGE_KEY_LEN];
 
 /// Representation of a storage key used in access lists.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StorageKey {
     bytes: StorageKeyBytes,
 }
@@ -34,7 +34,7 @@ impl StorageKey {
 }
 
 /// Structure of an access i.e. an address and a list of storage keys accessed by a transaction.
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 pub struct Access {
     /// Address of the account accessed by the transaction.
     pub address: AccountAddress,

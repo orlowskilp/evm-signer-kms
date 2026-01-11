@@ -36,6 +36,7 @@ const LEGACY_TX_MIN_PARITY: u32 = 27;
 /// This trait is used to define the encoding method for all the transaction types.
 /// Provides bounds for RLP encoding, comparisons and deserialization.
 pub trait Transaction:
+    Clone +
     // For RLP encoding
     Encodable +
     // For comparisons during testing

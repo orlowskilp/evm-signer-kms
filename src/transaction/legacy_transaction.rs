@@ -6,7 +6,7 @@ use serde::Deserialize;
 ///
 /// The format of a legacy transaction roughly follows the structure described
 /// [here](https://ethereum.org/en/developers/docs/transactions).
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LegacyTransaction {
     /// Sequence number of transaction from the account.
