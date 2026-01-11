@@ -4,8 +4,8 @@ mod evm_account {
             account::EvmAccount,
             key::aws_kms,
             transaction::{
-                access_list_transaction::AccessListTransaction, address::AccountAddress,
-                free_market_transaction::FreeMarketTransaction,
+                Transaction, access_list_transaction::AccessListTransaction,
+                address::AccountAddress, free_market_transaction::FreeMarketTransaction,
                 legacy_transaction::LegacyTransaction,
             },
         };
@@ -28,9 +28,6 @@ mod evm_account {
             0x59, 0x62, 0x80, 0x62, 0x55, 0x73,
         ];
 
-        // NOTE: Digest signatures from KMS are non-deterministic, so the output of this test will
-        // vary. For this reason, the test is not asserting any specific value, but rather just
-        // assess whether transaction encoding can be performed without errors.
         #[test(tokio::test)]
         async fn test_sign_transaction_ok() {
             let signing_key = &aws_kms::AwsKmsKey::new(
@@ -40,7 +37,7 @@ mod evm_account {
             )
             .await;
             let evm_account = EvmAccount::new(signing_key);
-            let tx = FreeMarketTransaction {
+            let unsigned_tx = FreeMarketTransaction {
                 gas_limit: 21_000,
                 max_fee_per_gas: 100_000_000_000,
                 max_priority_fee_per_gas: 3_000_000_000,
@@ -51,12 +48,20 @@ mod evm_account {
                 data: vec![],
                 access_list: vec![],
             };
-            evm_account
+            let encoded_unsigned_tx = unsigned_tx.encode();
+            let encoded_signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx)
+                .sign_transaction(unsigned_tx)
                 .await
-                .unwrap();
+                .unwrap()
+                .encode();
+
+            // The RLP encoding of the initial portion of signed tx and the unsigned tx should match
+            assert_eq!(
+                &encoded_signed_tx[3..(encoded_unsigned_tx.len() + 1)],
+                &encoded_unsigned_tx[2..]
+            );
         }
 
         #[test(tokio::test)]
@@ -70,13 +75,21 @@ mod evm_account {
             .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
-            evm_account
+            let unsigned_tx: LegacyTransaction = serde_json::from_reader(tx_file).unwrap();
+            let encoded_unsigned_tx = unsigned_tx.encode();
+            let encoded_signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx)
+                .sign_transaction(unsigned_tx)
                 .await
-                .unwrap();
+                .unwrap()
+                .encode();
+
+            // The RLP encoding of the initial portion of signed tx and the unsigned tx should match
+            assert_eq!(
+                &encoded_signed_tx[2..(encoded_unsigned_tx.len() + 1)],
+                &encoded_unsigned_tx[1..]
+            );
         }
 
         #[test(tokio::test)]
@@ -90,16 +103,22 @@ mod evm_account {
             )
             .await;
             let evm_account = EvmAccount::new(signing_key);
-
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
-
-            evm_account
+            let unsigned_tx: AccessListTransaction = serde_json::from_reader(tx_file).unwrap();
+            let encoded_unsigned_tx = unsigned_tx.encode();
+            let encoded_signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx)
+                .sign_transaction(unsigned_tx)
                 .await
-                .unwrap();
+                .unwrap()
+                .encode();
+
+            // The RLP encoding of the initial portion of signed tx and the unsigned tx should match
+            assert_eq!(
+                &encoded_signed_tx[3..encoded_unsigned_tx.len()],
+                &encoded_unsigned_tx[3..]
+            );
         }
 
         #[test(tokio::test)]
@@ -113,53 +132,20 @@ mod evm_account {
             .await;
             let evm_account = EvmAccount::new(signing_key);
             let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-            evm_account
+            let unsigned_tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
+            let encoded_unsigned_tx = unsigned_tx.encode();
+            let encoded_signed_tx = evm_account
                 .await
                 .unwrap()
-                .sign_transaction(tx)
+                .sign_transaction(unsigned_tx)
                 .await
                 .unwrap();
-        }
 
-        #[test(tokio::test)]
-        async fn test_encode_signed_free_market_tx_with_access_list_1_ok() {
-            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-03.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(
-                &KMS_KEY_ID,
-                #[cfg(feature = "sts-assume-role")]
-                None,
-            )
-            .await;
-            let evm_account = EvmAccount::new(signing_key);
-            let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-            evm_account
-                .await
-                .unwrap()
-                .sign_transaction(tx)
-                .await
-                .unwrap();
-        }
-
-        #[test(tokio::test)]
-        async fn test_encode_signed_free_market_tx_with_access_list_2_ok() {
-            const TX_FILE_PATH: &str = "tests/data/valid-free-market-tx-04.json";
-            let signing_key = &aws_kms::AwsKmsKey::new(
-                &KMS_KEY_ID,
-                #[cfg(feature = "sts-assume-role")]
-                None,
-            )
-            .await;
-            let evm_account = EvmAccount::new(signing_key);
-            let tx_file = File::open(TX_FILE_PATH).unwrap();
-            let tx: FreeMarketTransaction = serde_json::from_reader(tx_file).unwrap();
-            evm_account
-                .await
-                .unwrap()
-                .sign_transaction(tx)
-                .await
-                .unwrap();
+            // The RLP encoding of the initial portion of signed tx and the unsigned tx should match
+            assert_eq!(
+                &encoded_signed_tx.encode()[3..(encoded_unsigned_tx.len() + 1)],
+                &encoded_unsigned_tx[2..]
+            );
         }
     }
 }
