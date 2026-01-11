@@ -183,6 +183,20 @@
 //! }
 //! ```
 //!
+//! # Explicit role assumption with AWS STS
+//!
+//! If your wish to assume a different IAM role than the one your environment is running as,
+//! for instance to access KMS keys in a different AWS account, or to implement more granular
+//! permissions separation, you can enable the `sts-assume-role` feature of this library.
+//!
+//! ```toml
+//! evm-signer-kms = { version = "0.5.1", features = ["sts-assume-role"] }
+//! ```
+//!
+//! When the feature is enabled, you can provide an optional role ARN when creating
+//! the `AwsKmsKey` instance. The library will then assume the provided role using AWS STS
+//! before accessing the KMS key. If `None` is provided, the library will use the default
+//! credentials provider chain.
 
 /// Abstraction over EVM accounts for signing transactions with AWS KMS keys.
 pub mod account;
